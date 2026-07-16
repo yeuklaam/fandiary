@@ -580,7 +580,8 @@ const DEMO_DB=[
    {d:55,type:'演出', name:'Anniversary Concert in TOKYO DOME D1', city:'東京', country:'日本', time:'18:00', note:'東京巨蛋 · 全席指定'},
    {d:56,type:'演出', name:'Anniversary Concert in TOKYO DOME D2', city:'東京', country:'日本', time:'15:00', note:'東京巨蛋 · 全席指定'},
    {date:'2026-05-09',type:'演出', name:'THE RETURN in TOKYO DOME D1(已落幕)', city:'東京', country:'日本', time:'18:00', note:'日本出道15週年 · 東京巨蛋 · 全席指定 ¥15,500'},
-   {date:'2026-05-10',type:'演出', name:'THE RETURN in TOKYO DOME D2(已落幕)', city:'東京', country:'日本', time:'15:00', note:'日本出道15週年 · 東京巨蛋 · 全席指定 ¥15,500'}
+   {date:'2026-05-10',type:'演出', name:'THE RETURN in TOKYO DOME D2(已落幕)', city:'東京', country:'日本', time:'15:00', note:'日本出道15週年 · 東京巨蛋 · 全席指定 ¥15,500'},
+   {date:'2026-09-12',type:'演出', name:'LEE JUNHO FANMEETING〈AUTUMN NOTE〉in Seoul', city:'首爾', country:'韓國', time:'19:30', note:'官方FC已公告 · 以官方公告為準'}
  ]},
  {keys:['AESPA','에스파'],label:'aespa',events:[
    {d:7, type:'抽選', name:'官咖會員先售登記截止', city:'-', country:'台灣', time:'23:59', note:'售票:KKTIX 會員先售'},
@@ -631,49 +632,50 @@ async function uiConfirm(msg,ok,cancel){ const r=await uiChoice(msg,[{label:ok||
 const todayStr=()=>new Date().toISOString().slice(0,10);
 
 function seed(){
-  const a1=uid(), a2=uid();
+  const a1=uid();
   return {
     artists:[
-      {id:a1,name:'珉奎',group:'SEVENTEEN',color:'#F5A9C4',role:'main',since:'2021-06-18'},
-      {id:a2,name:'柾國',group:'BTS',color:'#7B68EE',role:'sub',since:'2019-04-02'}
+      {id:a1,name:'俊昊',group:'2PM',color:'#F5A9C4',role:'main',since:'2023-08-01'}
     ],
     activeArtistId:a1,
     events:[
-      {id:uid(),artistId:a1,name:'FOLLOW AGAIN in TAIPEI',type:'演出',date:offset(18),time:'18:00',city:'台北',country:'台灣',note:'高雄場沒中,台北雪恥!',join:'want',unit:'團體'},
-      {id:uid(),artistId:a1,name:'東京巨蛋場一般販售',type:'開賣',date:offset(4),time:'12:00',city:'東京',country:'日本',note:'e+ 開搶'},
-      {id:uid(),artistId:a2,name:'FC 先行抽選申請截止',type:'抽選',date:offset(9),time:'23:59',city:'-',country:'日本',note:''},
-      {id:uid(),artistId:a1,name:'抽選中票入金截止',type:'入金',date:offset(12),time:'21:00',city:'-',country:'日本',note:'超商代碼繳費'}
+      {id:uid(),artistId:a1,name:'LEE JUNHO FANMEETING〈AUTUMN NOTE〉in Seoul',type:'演出',date:'2026-09-12',time:'19:30',city:'首爾',country:'韓國',venue:'首爾(場館待公告)',note:'官方FC已公告 · 以官方公告為準',join:'want',unit:'SOLO'},
+      {id:uid(),artistId:a1,name:'AUTUMN NOTE 旅行團申込(入金先著順)',type:'開賣',date:offset(7),time:'12:00',city:'-',country:'韓國',note:'KJC TOUR 受理 · 申込後24小時內入金 · 以官方公告為準',unit:'SOLO'}
     ],
     memories:[
-      {id:uid(),artistId:a1,title:'BE THE SUN in BANGKOK',date:'2025-10-12',venue:'Impact Arena',city:'曼谷',country:'泰國',rating:5,note:'安可時全場合唱,哭爛。座位 A2 區離舞台超近!',photo:null},
-      {id:uid(),artistId:a2,title:'SG 巡演 首爾場',date:'2025-06-21',venue:'蠶室主競技場',city:'首爾',country:'韓國',rating:5,note:'第一次飛首爾參戰,值得!',photo:null},
-      {id:uid(),artistId:a1,title:'FANMEET 高雄場',date:'2026-03-08',venue:'高雄流行音樂中心',city:'高雄',country:'台灣',rating:4,note:'互動環節被點到,人生巔峰。',photo:null}
+      {id:uid(),artistId:a1,title:'Arena Tour 2023「また会える日」神戶場',date:'2023-08-05',venue:'神戶世界紀念廳',city:'神戶',country:'日本',rating:5,note:'入坑後第一場參戰!Solo 出道十週年巡演,從此回不去了。',photo:null},
+      {id:uid(),artistId:a1,title:'Arena Tour 2023「また会える日」名古屋最終場',date:'2023-08-27',venue:'日本瓦斯廳(日本ガイシホール)',city:'名古屋',country:'日本',rating:5,note:'巡演千秋樂!全國電影院同步 LV 的那場,現場見證。',photo:null},
+      {id:uid(),artistId:a1,title:'樂天免稅店 All-Night Party FM',date:'2023-10-21',venue:'樂天世界 Adventure',city:'首爾',country:'韓國',rating:4,note:'遊樂園包場+兩首 Live+脫口秀,初次海外遠征首爾。',photo:null},
+      {id:uid(),artistId:a1,title:'LOTTE DUTY FREE FAN EVENT',date:'2024-05-25',venue:'首爾(免稅店活動)',city:'首爾',country:'韓國',rating:4,note:'迷你演唱會兩首+全員擊掌+團體合照,值回票價。',photo:null},
+      {id:uid(),artistId:a1,title:'FAN-CON〈Midnight Sun〉仁川場 D1',date:'2025-01-25',venue:'INSPIRE Arena',city:'仁川',country:'韓國',rating:5,note:'巡演首站!寒冬裡的 Midnight Sun,燒到不行。',photo:null},
+      {id:uid(),artistId:a1,title:'FAN-CON〈Midnight Sun〉in JAPAN D1',date:'2025-02-08',venue:'東京體育館',city:'東京',country:'日本',rating:5,note:'相隔一年五個月的日本公演,兩萬人大合唱。',photo:null},
+      {id:uid(),artistId:a1,title:'「Typhoon Family」Drama FM in TOKYO',date:'2025-12-14',venue:'KEIO ARENA TOKYO',city:'東京',country:'日本',rating:4,note:'颱風商社播出紀念 FM,一日兩場,演員模式的他也好帥。',photo:null},
+      {id:uid(),artistId:a1,title:'LEE JUNHO FAN MEETING〈STUNNING US〉D2',date:'2026-01-25',venue:'高麗大學華汀體育館',city:'首爾',country:'韓國',rating:5,note:'生日 FM!飛首爾值得,安可尖叫到失聲。',photo:null},
+      {id:uid(),artistId:a1,title:'2PM 15th Anniversary「THE RETURN」in TOKYO DOME D2',date:'2026-05-10',venue:'東京巨蛋',city:'東京',country:'日本',rating:5,note:'六人完全體+日本出道15週年,哭爛。全席指定運氣超好。',photo:null}
     ],
     cards:[
-      {id:uid(),artistId:a1,title:'曼谷場限定小卡',category:'Concert 小卡',status:'keep',photo:null},
-      {id:uid(),artistId:a1,title:'FML 專輯 D 版附卡',category:'專輯/CD 附卡',status:'give',photo:null},
-      {id:uid(),artistId:a2,title:'GOLDEN 特典卡',category:'專輯/CD 附卡',status:'want',photo:null}
+      {id:uid(),artistId:a1,title:'STUNNING US 場販限定小卡',category:'FM 小卡',status:'keep',photo:null},
+      {id:uid(),artistId:a1,title:'THE RETURN 東京巨蛋 特典卡',category:'Concert 小卡',status:'give',photo:null}
     ],
     expenses:[
-      {id:uid(),artistId:a1,cat:'門票',amount:6800,date:'2025-10-01',note:'曼谷場 VIP'},
-      {id:uid(),artistId:a1,cat:'交通',amount:9200,date:'2025-10-10',note:'台北⇄曼谷機票'},
-      {id:uid(),artistId:a1,cat:'周邊',amount:2400,date:'2025-10-12',note:'手燈電池+毛巾'},
-      {id:uid(),artistId:a2,cat:'住宿',amount:5400,date:'2025-06-20',note:'首爾兩晚'}
+      {id:uid(),artistId:a1,cat:'門票',amount:4300,date:'2023-07-01',note:'Arena Tour 2023 神戶+名古屋'},
+      {id:uid(),artistId:a1,cat:'交通',amount:6800,date:'2025-02-01',note:'東京來回(Midnight Sun)'},
+      {id:uid(),artistId:a1,cat:'門票',amount:8200,date:'2026-01-10',note:'STUNNING US D2'},
+      {id:uid(),artistId:a1,cat:'交通',amount:7600,date:'2026-01-20',note:'首爾來回機票'},
+      {id:uid(),artistId:a1,cat:'周邊',amount:3100,date:'2026-05-10',note:'THE RETURN 場販+手燈'}
     ],
     teammates:[
-      {id:uid(),name:'小魚',platform:'拓元',duty:'主搶 A 區'},
-      {id:uid(),name:'Momo',platform:'e+',duty:'日本代搶'}
+      {id:uid(),name:'小魚',platform:'拓元',duty:'主搶 A 區'}
     ],
     cheat:[
       {label:'會員帳號',value:'demo_fan_001'},
-      {label:'場次代碼',value:'SVT-TPE-0802'},
-      {label:'目標票區',value:'A2 > B1 > 看台 2F'},
-      {label:'備用帳號',value:'demo_fan_002'}
+      {label:'場次代碼',value:'JUNHO-SEL-0912'},
+      {label:'目標票區',value:'A2 > B1 > 看台 2F'}
     ],
     results:[
-      {id:uid(),event:'高雄 FANMEET',platform:'拓元',win:true,seat:'2F 排 8'},
-      {id:uid(),event:'FOLLOW 高雄場',platform:'拓元',win:false,seat:'-'}
-    ]
+      {id:uid(),event:'STUNNING US D2',platform:'Interpark',win:true,seat:'2F B 區'}
+    ],
+    ui:{theme:'light'}
   };
 }
 function offset(d){const t=new Date(); t.setDate(t.getDate()+d); return t.toISOString().slice(0,10);}
