@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="FanDiary">
+<meta name="apple-mobile-web-app-title" content="FanDiary 應援日誌">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
@@ -196,12 +196,38 @@ h1.pgtitle{font-size:27px; margin:0; letter-spacing:1px;}
 .mate .av{width:38px; height:38px; border-radius:50%; border:2.5px solid var(--ink); display:flex; align-items:center; justify-content:center; font-weight:800; color:#fff; flex:0 0 auto; font-family:'Baloo 2',sans-serif;}
 
 /* ---- photocards ---- */
-.pcgrid{display:grid; grid-template-columns:repeat(3,1fr); gap:9px; margin-top:14px;}
+.pcgrid{display:grid; grid-template-columns:repeat(3,1fr); gap:16px 9px; margin-top:16px;}
 .pc{
   aspect-ratio:5.5/8.5; border:2px solid var(--ink); border-radius:11px;
-  box-shadow:2.5px 2.5px 0 var(--ink); overflow:hidden; position:relative;
+  box-shadow:2.5px 2.5px 0 var(--ink); overflow:visible; position:relative;
   background:var(--acc-soft); cursor:pointer;
 }
+.pc img,.pc .ph{border-radius:9px;}
+.pc .nm{border-radius:0 0 9px 9px;}
+/* 掛耳籤:狀態標籤掛在卡片外緣,不擋卡面 */
+.pctag{position:absolute; top:-10px; right:-6px; transform:rotate(7deg); z-index:3;
+  font-size:9.5px; font-weight:800; padding:2px 8px; border:2px solid var(--ink); border-radius:99px;
+  box-shadow:1.5px 1.5px 0 var(--ink); pointer-events:none; white-space:nowrap;}
+.pctag.give{background:var(--tan);}
+.pctag.want{background:var(--sky);}
+/* 卡組 */
+.setchip{display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:800; padding:5px 12px;
+  border:2px solid var(--ink); border-radius:99px; background:var(--white); box-shadow:2px 2px 0 var(--ink); cursor:pointer; margin:2px 4px 2px 0;}
+.setchip.full{background:var(--sun);}
+.setchip.add{background:var(--acc-soft); opacity:.85;}
+.slotgrid{display:grid; grid-template-columns:repeat(4,1fr); gap:12px 8px; margin-top:10px;}
+.slot{aspect-ratio:5.5/8.5; border:2px solid var(--ink); border-radius:9px; position:relative; overflow:hidden;
+  display:flex; align-items:center; justify-content:center; font-size:22px; cursor:pointer; background:var(--white); box-shadow:2px 2px 0 var(--ink);}
+.slot img{width:100%; height:100%; object-fit:cover;}
+.slot.miss{border-style:dashed; background:transparent; box-shadow:none; opacity:.5;}
+.slot.want{background:var(--sky); font-size:18px;}
+.slot .no{position:absolute; bottom:2px; right:5px; font-size:9.5px; font-weight:800;
+  background:var(--white); border:1.5px solid var(--ink); border-radius:99px; padding:0 5px;}
+/* 票務看板 */
+.tk{display:flex; align-items:center; gap:8px; padding:9px 0; border-bottom:2px dashed color-mix(in srgb,var(--ink) 20%, transparent);}
+.tk:last-child{border:none;}
+.tk.done{opacity:.55;}
+.tk b{font-size:13.5px;}
 .pc img{width:100%; height:100%; object-fit:cover; display:block;}
 .pc .ph{width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:34px;}
 .pc .rar{position:absolute; top:7px; left:7px;}
@@ -333,7 +359,7 @@ input:focus,select:focus,textarea:focus{box-shadow:3px 3px 0 var(--acc);}
 <section class="page" id="pg-home">
   <div class="hgroup">
     <h1 class="pgtitle disp">FanDiary <span style="font-size:15px;">應援日誌</span></h1>
-    <button class="btn sm line" onclick="openArtistSheet()">+ 自擔</button>
+    <button class="btn sm line" onclick="openArtistSheet()" data-i18n="b.artist">+ 自擔</button>
   </div>
   <div class="oshi-row" id="oshiRow"></div>
   <div id="sinceLine" style="margin:-2px 2px 0;"></div>
@@ -371,11 +397,11 @@ input:focus,select:focus,textarea:focus{box-shadow:3px 3px 0 var(--acc);}
 <!-- ============ CALENDAR ============ -->
 <section class="page" id="pg-cal">
   <div class="hgroup">
-    <h1 class="pgtitle disp">行程日曆</h1>
+    <h1 class="pgtitle disp" data-i18n="t.cal">行程日曆</h1>
     <div>
-      <button class="btn sm line" onclick="openMealShare()">🍚 空檔</button>
-      <button class="btn sm line" id="calViewBtn" onclick="toggleCalView()">☰ 待辦</button>
-      <button class="btn sm" onclick="openEventSheet()">+ 行程</button>
+      <button class="btn sm line" onclick="openMealShare()" data-i18n="b.meal">🍚 空檔</button>
+      <button class="btn sm line" id="calViewBtn" onclick="toggleCalView()" data-i18n="b.todo">☰ 待辦</button>
+      <button class="btn sm" onclick="openEventSheet()" data-i18n="b.addEvent">+ 行程</button>
     </div>
   </div>
   <div class="legend seg" id="calSeg"></div>
@@ -401,10 +427,10 @@ input:focus,select:focus,textarea:focus{box-shadow:3px 3px 0 var(--acc);}
 <!-- ============ TIMELINE ============ -->
 <section class="page" id="pg-mem">
   <div class="hgroup">
-    <h1 class="pgtitle disp">回憶時間軸</h1>
+    <h1 class="pgtitle disp" data-i18n="t.mem">回憶時間軸</h1>
     <div>
-      <button class="btn sm line" onclick="openMemShareChooser()">📤 分享</button>
-      <button class="btn sm" onclick="openMemSheet()">+ 參戰紀錄</button>
+      <button class="btn sm line" onclick="openMemShareChooser()" data-i18n="b.share">📤 分享</button>
+      <button class="btn sm" onclick="openMemSheet()" data-i18n="b.addMem">+ 參戰紀錄</button>
     </div>
   </div>
   <p class="sub" style="margin:2px 2px 0;">每一場都值得被記住 ✍️</p>
@@ -425,13 +451,22 @@ input:focus,select:focus,textarea:focus{box-shadow:3px 3px 0 var(--acc);}
 <!-- ============ WAR ROOM ============ -->
 <section class="page" id="pg-war">
   <div class="hgroup">
-    <h1 class="pgtitle disp">搶票作戰室</h1>
+    <h1 class="pgtitle disp" data-i18n="t.war">搶票作戰室</h1>
   </div>
   <div class="card tilt-l">
     <div class="tape t3"></div>
     <div class="sub disp" style="font-weight:700;">開賣倒數</div>
     <div id="saleName" style="font-weight:700;">尚未設定開賣行程</div>
     <div class="bigclock disp" id="saleClock">--:--:--</div>
+  </div>
+
+  <div class="card tilt-r">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <b class="disp" style="font-size:17px;">🎫 票務看板</b>
+      <button class="btn sm" onclick="openTicketSheet()">+ 票</button>
+    </div>
+    <p class="sub" style="margin:4px 0 0; font-size:11.5px;">每張票一張卡:觀望 → 申請/委託 → 等當落 → 中票 → 入金 → 到手。設了入金期限會自動加進日曆 ⏰</p>
+    <div id="ticketList"></div>
   </div>
 
   <div class="warn tilt-r">⚠️ 原型測試請一律使用<b>假資料</b>。正式版將採「裝置本地加密 + 生物辨識解鎖」,絕不上傳雲端。</div>
@@ -464,23 +499,25 @@ input:focus,select:focus,textarea:focus{box-shadow:3px 3px 0 var(--acc);}
 <!-- ============ PHOTOCARDS ============ -->
 <section class="page" id="pg-pc">
   <div class="hgroup">
-    <h1 class="pgtitle disp">小卡收藏冊</h1>
+    <h1 class="pgtitle disp" data-i18n="t.pc">小卡收藏冊</h1>
     <div>
-      <button class="btn sm line" onclick="openTradeSheet()">🔁 換卡</button>
-      <button class="btn sm" onclick="openCardSheet()">+ 小卡</button>
+      <button class="btn sm line" onclick="openBatchCards()">⬆️ 批次</button>
+      <button class="btn sm line" onclick="openTradeSheet()" data-i18n="b.trade">🔁 換卡</button>
+      <button class="btn sm" onclick="openCardSheet()" data-i18n="b.addCard">+ 小卡</button>
     </div>
   </div>
   <p class="sub" style="margin:2px 2px 0;">點卡看 3D 全息 ✨ 右上 ✏️ 編輯,標「想換走/徵求中」可生成換卡貼文</p>
   <div class="oshi-row" id="pcFilter" style="margin-top:8px;"></div>
   <input id="pcSearch" placeholder="🔍 搜尋卡名 / 分類 / 自擔" style="margin-top:4px;" oninput="pcQ=this.value;renderPC()">
+  <div id="setRow" class="legend" style="margin-top:10px;"></div>
   <div class="pcgrid" id="pcGrid"></div>
 </section>
 
 <!-- ============ MAP ============ -->
 <section class="page" id="pg-map">
   <div class="hgroup">
-    <h1 class="pgtitle disp">應援足跡</h1>
-    <button class="btn sm line" onclick="go('home')">← 首頁</button>
+    <h1 class="pgtitle disp" data-i18n="t.map">應援足跡</h1>
+    <button class="btn sm line" onclick="go('home')" data-i18n="b.home">← 首頁</button>
   </div>
   <p class="sub" style="margin:2px 2px 0;">參戰紀錄自動點亮國家,點國旗看該國的參戰回憶 👆 未來演出顯示為計畫中 ✈️</p>
   <div class="card tilt-l" id="mapHero"></div>
@@ -493,10 +530,10 @@ input:focus,select:focus,textarea:focus{box-shadow:3px 3px 0 var(--acc);}
 <!-- ============ MONEY ============ -->
 <section class="page" id="pg-money">
   <div class="hgroup">
-    <h1 class="pgtitle disp">支出統計</h1>
+    <h1 class="pgtitle disp" data-i18n="t.money">支出統計</h1>
     <div>
       <button class="btn sm line" onclick="go('home')">←</button>
-      <button class="btn sm" onclick="openExpSheet()">+ 支出</button>
+      <button class="btn sm" onclick="openExpSheet()" data-i18n="b.addExp">+ 支出</button>
     </div>
   </div>
   <div class="card tilt-l">
@@ -512,8 +549,8 @@ input:focus,select:focus,textarea:focus{box-shadow:3px 3px 0 var(--acc);}
 <!-- ============ SHARE ============ -->
 <section class="page" id="pg-share">
   <div class="hgroup">
-    <h1 class="pgtitle disp">戰績分享卡</h1>
-    <button class="btn sm line" onclick="go('home')">← 首頁</button>
+    <h1 class="pgtitle disp" data-i18n="t.share">戰績分享卡</h1>
+    <button class="btn sm line" onclick="go('home')" data-i18n="b.home">← 首頁</button>
   </div>
   <p class="sub" style="margin:2px 2px 4px;">生成參戰總結,一鍵存圖發社群 📸 先選統計範圍:</p>
   <div class="oshi-row" id="shareFilter" style="margin-top:6px;"></div>
@@ -533,12 +570,19 @@ input:focus,select:focus,textarea:focus{box-shadow:3px 3px 0 var(--acc);}
 <!-- ============ SETTINGS ============ -->
 <section class="page" id="pg-settings">
   <div class="hgroup">
-    <h1 class="pgtitle disp">設定</h1>
-    <button class="btn sm line" onclick="go('home')">← 首頁</button>
+    <h1 class="pgtitle disp" data-i18n="t.set">設定</h1>
+    <button class="btn sm line" onclick="go('home')" data-i18n="b.home">← 首頁</button>
   </div>
   <div class="card tilt-l">
     <div class="tape"></div>
     <b class="disp" style="font-size:16px;">👤 個人</b>
+    <label class="f">🌐 介面語言 / Language / 언어</label>
+    <select id="langSel" onchange="setLang(this.value)">
+      <option value="zh">繁體中文</option>
+      <option value="ja">日本語</option>
+      <option value="ko">한국어</option>
+    </select>
+    <p class="sub" style="font-size:11px; margin:4px 0 0;">先支援導覽與主畫面,表單內容將分階段翻譯 🌱</p>
     <label class="f">我的所在國家(足跡「海外遠征」以此判定,國旗牆標 🏠)</label>
     <select id="setHome" onchange="setHomeCountry(this.value)"></select>
     <label class="f">統計幣別(支出統計以此折合,匯率為概算)</label>
@@ -584,11 +628,11 @@ input:focus,select:focus,textarea:focus{box-shadow:3px 3px 0 var(--acc);}
 
 <!-- nav -->
 <nav id="nav">
-  <button data-pg="home" class="on" onclick="go('home')"><em>🏠</em>首頁</button>
-  <button data-pg="cal" onclick="go('cal')"><em>📅</em>日曆</button>
-  <button data-pg="mem" onclick="go('mem')"><em>📖</em>回憶</button>
-  <button data-pg="war" onclick="go('war')"><em>🎟️</em>搶票</button>
-  <button data-pg="pc" onclick="go('pc')"><em>✨</em>小卡</button>
+  <button data-pg="home" class="on" onclick="go('home')"><em>🏠</em><span data-i18n="nav.home">首頁</span></button>
+  <button data-pg="cal" onclick="go('cal')"><em>📅</em><span data-i18n="nav.cal">日曆</span></button>
+  <button data-pg="mem" onclick="go('mem')"><em>📖</em><span data-i18n="nav.mem">回憶</span></button>
+  <button data-pg="war" onclick="go('war')"><em>🎟️</em><span data-i18n="nav.war">搶票</span></button>
+  <button data-pg="pc" onclick="go('pc')"><em>✨</em><span data-i18n="nav.pc">小卡</span></button>
 </nav>
 
 <script>
@@ -678,7 +722,7 @@ const localYMD=t=>`${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-
 const todayStr=()=>localYMD(new Date());
 
 function seed(){
-  const a1=uid();
+  const a1=uid(), s1=uid();
   return {
     artists:[
       {id:a1,name:'俊昊',group:'2PM',color:'#F5A9C4',role:'main',since:'2023-08-01',demo:true}
@@ -700,9 +744,11 @@ function seed(){
       {demo:true,id:uid(),artistId:a1,title:'2PM 15th Anniversary「THE RETURN」in TOKYO DOME D2',date:'2026-05-10',venue:'東京巨蛋',city:'東京',country:'日本',rating:5,note:'六人完全體+日本出道15週年,哭爛。全席指定運氣超好。',photo:null}
     ],
     cards:[
-      {demo:true,id:uid(),artistId:a1,title:'STUNNING US 場販限定小卡',category:'FM 小卡',status:'keep',photo:null},
+      {demo:true,id:uid(),artistId:a1,title:'STUNNING US 場販限定小卡',category:'FM 小卡',status:'keep',photo:null,setId:s1,setNo:3},
       {demo:true,id:uid(),artistId:a1,title:'THE RETURN 東京巨蛋 特典卡',category:'Concert 小卡',status:'give',photo:null}
     ],
+    sets:[{demo:true,id:s1,artistId:a1,name:'STUNNING US 場販小卡組',total:8}],
+    tickets:[{demo:true,id:uid(),artistId:a1,title:'THE RETURN ENCORE 東京 D2',stage:'waiting',channel:'agent',seat:'Arena A~C 區',price:'¥28,000(代搶費另計)',deadline:offset(12),note:'代搶:@ticket_yuki'}],
     expenses:[
       {demo:true,id:uid(),artistId:a1,cat:'門票',amount:4300,date:'2023-07-01',note:'Arena Tour 2023 神戶+名古屋'},
       {demo:true,id:uid(),artistId:a1,cat:'交通',amount:6800,date:'2025-02-01',note:'東京來回(Midnight Sun)'},
@@ -756,8 +802,8 @@ function dropPhoto(ref){ if(ref&&typeof ref==='string'&&ref.startsWith('idb:')){
 async function photoMigrate(){
   if(!idb)return;
   let changed=false;
-  /* 小卡:單張 */
-  for(const it of S.cards){
+  /* 小卡+行程 Teaser:單張 */
+  for(const it of [...S.cards,...S.events]){
     if(!it.photo)continue;
     if(it.photo.startsWith('data:')){ it.photo=await savePhoto(it.photo); changed=true; }
     else if(it.photo.startsWith('idb:')&&!PHOTO_CACHE.has(it.photo)){
@@ -785,7 +831,7 @@ async function photoMigrate(){
 async function initPhotoStore(){ idb=await idbOpen(); await photoMigrate(); go(CUR_PG); }
 
 function migrate(){
-  ['events','memories','cards','expenses','results','teammates','cheat','perks'].forEach(k=>{ if(!S[k])S[k]=[]; });
+  ['events','memories','cards','expenses','results','teammates','cheat','perks','sets','tickets'].forEach(k=>{ if(!S[k])S[k]=[]; });
   S.artists.forEach((a,i)=>{ if(!a.role)a.role=i===0?'main':'sub'; if(a.since===undefined)a.since=''; });
   S.cards.forEach(c=>{ if(!c.category)c.category='其他'; if(!c.status)c.status='keep'; });
   S.memories.forEach(m=>{ if(!m.fit)m.fit='cover';
@@ -821,7 +867,7 @@ function tagLegacyDemo(){
 }
 /* 一鍵清除示範資料:只刪預設紀錄,使用者自己新增的全部保留 */
 async function clearDemoData(){
-  const lists=['events','memories','cards','expenses','teammates','results','perks'];
+  const lists=['events','memories','cards','expenses','teammates','results','perks','sets','tickets'];
   const isDemo=(k,v)=>!!v.demo||(k==='events'&&(v.name||'').includes('【示範】'));
   let cnt=lists.reduce((t,k)=>t+S[k].filter(v=>isDemo(k,v)).length,0)+(S.cheat||[]).filter(c=>c.demo).length;
   if(!cnt&&!S.artists.some(a=>a.demo)) return toast('沒有示範資料了,現在都是你的紀錄','✅');
@@ -839,7 +885,7 @@ async function clearDemoData(){
   if(others.length){
     /* 已有自己的自擔 → 連示範自擔一起移除(含其殘留紀錄) */
     const ids=new Set(S.artists.filter(a=>a.demo).map(a=>a.id));
-    ['events','memories','cards','expenses','perks'].forEach(k=>{ S[k]=S[k].filter(v=>!ids.has(v.artistId)); });
+    ['events','memories','cards','expenses','perks','sets','tickets'].forEach(k=>{ S[k]=S[k].filter(v=>!ids.has(v.artistId)); });
     S.artists=others;
     if(!others.some(a=>a.role==='main')) others[0].role='main';
     if(!artist(S.activeArtistId)) S.activeArtistId=others[0].id;
@@ -903,9 +949,10 @@ function renderHome(){
   const fut=S.events.filter(e=>e.date>=todayStr()).sort((a,b)=>a.date.localeCompare(b.date));
   const nx=fut.find(e=>e.type==='演出')||fut[0];
   if(nx){
-    const d=Math.ceil((new Date(nx.date+'T'+(nx.time||'00:00'))-new Date())/864e5);
+    /* 以日曆日計算:公演日=D-0(不看開演時刻,當天一早就是 D-0) */
+    const d=Math.round((new Date(nx.date+'T00:00')-new Date(todayStr()+'T00:00'))/864e5);
     document.getElementById('nextName').textContent=nx.name;
-    document.getElementById('nextCount').textContent=d<=0?'TODAY!':'D-'+d;
+    document.getElementById('nextCount').textContent=d<=0?'D-0 🎉':'D-'+d;
     document.getElementById('nextCount').classList.toggle('soon',d<=7);
     document.getElementById('nextMeta').textContent=`${nx.date} · ${nx.city||''} ${nx.country||''} · ${artist(nx.artistId)?.name||''}${nx.join?' · '+JOIN[nx.join]:''}`;
   }else{
@@ -947,6 +994,7 @@ function renderCal(){
         <div class="who">${e.date} ${e.time||''} · ${e.venue?esc(e.venue)+' · ':''}${esc(artist(e.artistId)?.name||'')} ${e.note?'· '+esc(e.note):''}</div>
         ${evtExtras(e)}</div>
         <button class="btn sm line" onclick="openEventSheet('${e.id}')">✏️</button>
+      <button class="btn sm line" onclick="openEventSheet(null,'${e.id}')">📄</button>
         <button class="btn sm line" onclick="delEvent('${e.id}')">🗑</button>
       </div>`).join(''):'<div class="empty">沒有符合的待辦</div>');
     return;
@@ -982,6 +1030,7 @@ function renderDay(){
         ${evtExtras(e)}
       </div>
       <button class="btn sm line" onclick="openEventSheet('${e.id}')">✏️</button>
+      <button class="btn sm line" onclick="openEventSheet(null,'${e.id}')">📄</button>
       <button class="btn sm line" onclick="delEvent('${e.id}')">🗑</button>
     </div>`).join(''):'<div class="empty">這天沒有行程,「+ 這天」補一筆?</div>';
 }
@@ -1197,7 +1246,8 @@ function renderTL(){
           ${(m.photos||[]).some(p=>photoSrc(p))?`<button class="btn sm line" onclick="toggleFit('${m.id}')">🖼 ${m.fit==='contain'?'改填滿':'看完整'}</button>`:''}
         </div>
         <div class="sub">📍 ${esc(m.venue||'')} · ${esc(m.city||'')} ${esc(m.country||'')}</div>
-        ${m.note?`<div style="font-size:13.5px; margin-top:5px;">${esc(m.note)}</div>`:''}
+        ${(n2=>n2?`<div class="sub" style="font-size:12px; margin-top:4px;">💿 本場入手 ${n2} 張小卡</div>`:'')(S.cards.filter(cc=>cc.memoryId===m.id).length)}
+    ${m.note?`<div style="font-size:13.5px; margin-top:5px;">${esc(m.note)}</div>`:''}
       </div>
     </div>`).join(''):'<div class="empty">還沒有參戰紀錄,快補上第一場!</div>';
 
@@ -1216,7 +1266,95 @@ async function delMem(id){ if(await uiConfirm('刪除這筆回憶?','刪除','�
 
 /* ================= war room ================= */
 let clockTimer=null, warExpand=false;
+/* ================= 票務看板(搶票流程狀態管理) ================= */
+const TK_STAGES=[['watch','👀','觀望'],['applied','🙋','已申請/委託'],['waiting','⏳','等當落'],['won','🎉','中票'],['paid','💰','已入金'],['got','🎫','到手'],['lost','😭','落選']];
+const TK_CH={self:'自搶',agent:'代搶',resale:'讓票/官方轉讓'};
+const tkStage=k=>TK_STAGES.find(t=>t[0]===k)||TK_STAGES[0];
+function renderTickets(){
+  const el=document.getElementById('ticketList'); if(!el)return;
+  const done=t=>t.stage==='got'||t.stage==='lost';
+  const ls=[...S.tickets].sort((a,b)=>done(a)-done(b)||(a.deadline||'9999').localeCompare(b.deadline||'9999'));
+  el.innerHTML=ls.map(t=>{
+    const stg=tkStage(t.stage), idx=TK_STAGES.findIndex(x=>x[0]===t.stage);
+    const nxt=idx<5?TK_STAGES[idx+1]:null;
+    const dl=t.deadline&&t.stage==='won'?`<b style="color:var(--acc-deep);">⏰入金 ${t.deadline.slice(5).replace('-','/')}</b>`:(t.deadline?'⏰'+t.deadline.slice(5).replace('-','/'):'');
+    return `<div class="tk ${done(t)?'done':''}">
+      <div style="flex:1; min-width:0;">
+        <b>${esc(t.title)}</b>
+        <div class="sub" style="font-size:11px;">${TK_CH[t.channel]||''}${t.seat?' · '+esc(t.seat):''}${t.price?' · '+esc(t.price):''} ${dl}</div>
+      </div>
+      <span class="pill ${done(t)?'mint':(t.stage==='won'?'sun':'sky')}" style="font-size:10px; flex:0 0 auto;">${stg[1]}${stg[2]}</span>
+      ${nxt&&!done(t)?`<button class="btn sm" style="flex:0 0 auto;" onclick="advanceTicket('${t.id}')">→${nxt[1]}</button>`:''}
+      <button class="btn sm line" style="flex:0 0 auto;" onclick="openTicketSheet('${t.id}')">✏️</button>
+    </div>`;
+  }).join('')||'<div class="empty">還沒有追蹤中的票。搶票季開跑時「+ 票」!</div>';
+}
+function advanceTicket(id){
+  const t=S.tickets.find(v=>v.id===id); if(!t)return;
+  const idx=TK_STAGES.findIndex(x=>x[0]===t.stage);
+  if(idx>=5)return;
+  t.stage=TK_STAGES[idx+1][0];
+  syncDepositEvent(t); save(); renderTickets();
+  const stg=tkStage(t.stage);
+  if(t.stage==='won'&&!t.deadline)toast('🎉 中票!記得 ✏️ 填入金期限,我幫你記進日曆','⏰');
+  else toast(`${stg[1]} ${esc(t.title)} → ${stg[2]}`,'🎫');
+}
+function syncDepositEvent(t){
+  /* 自動維護「入金」日曆行程:有期限且未完結 → 建立/更新;完結或清空 → 移除 */
+  const need=t.deadline&&!['paid','got','lost'].includes(t.stage);
+  let ev=S.events.find(e=>e.ticketId===t.id);
+  if(need){
+    if(!ev){ S.events.push({id:uid(),ticketId:t.id,artistId:t.artistId,type:'入金',name:`💰 ${t.title} 入金期限`,date:t.deadline,time:'',city:'',country:'',note:'由票務看板自動建立'}); }
+    else { ev.date=t.deadline; ev.name=`💰 ${t.title} 入金期限`; ev.artistId=t.artistId; }
+  } else if(ev){ S.events=S.events.filter(e=>e.ticketId!==t.id); }
+}
+function openTicketSheet(id){
+  const t=id?S.tickets.find(v=>v.id===id):null; EDITING=t?{t:'tk',id}:null;
+  const futEv=S.events.filter(e=>e.type==='演出'&&e.date>=todayStr()).sort((a,b)=>a.date.localeCompare(b.date));
+  showSheet(`
+    <h2 class="disp" style="margin:0 0 4px;">🎫 ${t?'編輯票務':'追蹤一張票'}</h2>
+    ${futEv.length&&!t?`<label class="f">從日曆帶入(選填)</label>
+    <select onchange="if(this.value){document.getElementById('tkTitle').value=this.selectedOptions[0].dataset.n;document.getElementById('tkArtist').value=this.selectedOptions[0].dataset.a;}">
+      <option value="">—</option>${futEv.map(e=>`<option value="${e.id}" data-n="${esc(e.name)}" data-a="${e.artistId}">${e.date.slice(5)} ${esc(e.name)}</option>`).join('')}</select>`:''}
+    <label class="f">票的名稱(場次)</label><input id="tkTitle" value="${t?esc(t.title):''}" placeholder="例:WORLD TOUR 東京 D2">
+    <div class="row">
+      <div><label class="f">自擔</label><select id="tkArtist">${artistOpts(t?t.artistId:null)}</select></div>
+      <div><label class="f">狀態</label><select id="tkStage">${TK_STAGES.map(x=>`<option value="${x[0]}" ${t&&t.stage===x[0]?'selected':''}>${x[1]} ${x[2]}</option>`).join('')}</select></div>
+    </div>
+    <div class="row">
+      <div><label class="f">管道</label><select id="tkCh">${Object.keys(TK_CH).map(k=>`<option value="${k}" ${t&&t.channel===k?'selected':''}>${TK_CH[k]}</option>`).join('')}</select></div>
+      <div><label class="f">入金期限(選填→自動進日曆)</label><input id="tkDl" type="date" value="${t?(t.deadline||''):''}"></div>
+    </div>
+    <div class="row">
+      <div><label class="f">希望席位(選填)</label><input id="tkSeat" value="${t?esc(t.seat||''):''}" placeholder="例:Arena A~C"></div>
+      <div><label class="f">價格/報價(選填)</label><input id="tkPrice" value="${t?esc(t.price||''):''}" placeholder="例:¥28,000+手續"></div>
+    </div>
+    <label class="f">備註(代搶聯絡、平台帳號提示…)</label><input id="tkNote" value="${t?esc(t.note||''):''}" placeholder="選填">
+    <div class="row" style="margin-top:14px;">
+      <button class="btn line" onclick="closeSheet()">取消</button>
+      <button class="btn" onclick="saveTicket()">${t?'儲存變更':'開始追蹤'}</button>
+    </div>
+    ${t?`<button class="btn line wide" style="margin-top:10px;" onclick="delTicket('${t.id}')">🗑 移除這張票(日曆的入金提醒一併移除)</button>`:''}`);
+}
+function saveTicket(){
+  const n=document.getElementById('tkTitle').value.trim(); if(!n)return toast('名稱必填','⚠️');
+  const o={title:n,artistId:document.getElementById('tkArtist').value,stage:document.getElementById('tkStage').value,
+    channel:document.getElementById('tkCh').value,deadline:document.getElementById('tkDl').value||'',
+    seat:document.getElementById('tkSeat').value.trim(),price:document.getElementById('tkPrice').value.trim(),note:document.getElementById('tkNote').value.trim()};
+  let t;
+  if(EDITING&&EDITING.t==='tk'){ t=S.tickets.find(v=>v.id===EDITING.id); Object.assign(t,o); }
+  else { t={id:uid(),...o}; S.tickets.push(t); }
+  syncDepositEvent(t);
+  EDITING=null; save(); closeSheet(); renderTickets(); toast('票務已更新','🎫');
+}
+async function delTicket(id){
+  if(!(await uiConfirm('移除這張票的追蹤?','移除','留著')))return;
+  S.tickets=S.tickets.filter(v=>v.id!==id);
+  S.events=S.events.filter(e=>e.ticketId!==id);
+  EDITING=null; save(); closeSheet(); renderTickets(); toast('已移除');
+}
 function renderWar(){
+  renderTickets();
   const fut=S.events.filter(e=>e.type==='開賣'&&e.date>=todayStr()).sort((a,b)=>a.date.localeCompare(b.date));
   const s=fut[0];
   document.getElementById('saleName').textContent=s?`${s.name}(${s.date} ${s.time||''})`:'尚未設定開賣行程(到日曆新增「開賣」類型)';
@@ -1289,11 +1427,135 @@ function renderPC(){
     <div class="pc ${i%2?'tilt-r':'tilt-l'}" onclick="openHolo('${c.id}')">
       ${photoSrc(c.photo)?`<img src="${photoSrc(c.photo)}" alt="">`:`<div class="ph">💿</div>`}
       <span class="pill sun rar" style="font-size:8.5px; padding:1px 7px; border-width:1.5px;">${esc(c.category||'其他')}</span>
-      ${c.status&&c.status!=='keep'?`<span class="pill ${c.status==='give'?'tan':'sky'}" style="position:absolute; top:42px; left:7px; font-size:10px;">${CARD_ST[c.status]}</span>`:''}
+      ${c.status&&c.status!=='keep'?`<span class="pctag ${c.status}">${CARD_ST[c.status]}</span>`:''}
       <button class="pcedit" onclick="event.stopPropagation();openCardSheet('${c.id}')">✏️</button>
       <button class="pcedit" style="top:40px;" onclick="event.stopPropagation();shareCardImg('${c.id}')">📤</button>
       <div class="nm">${esc(c.title)}</div>
     </div>`).join('')||'<div class="empty" style="grid-column:1/-1;">卡冊空空的,快收第一張!</div>';
+  renderSets();
+}
+/* ================= 卡組(一組N款) ================= */
+function renderSets(){
+  const el=document.getElementById('setRow'); if(!el)return;
+  const ss=S.sets.filter(st=>pcFilter==='all'||st.artistId===pcFilter);
+  el.innerHTML=ss.map(st=>{
+    const own=S.cards.filter(c=>c.setId===st.id&&c.status!=='want').length;
+    const full=own>=st.total;
+    return `<span class="setchip ${full?'full':''}" onclick="openSetView('${st.id}')">🧩 ${esc(st.name)} <b>${own}/${st.total}</b>${full?' 🎉':''}</span>`;
+  }).join('')+`<span class="setchip add" onclick="openSetSheet()">+ 卡組</span>`;
+}
+function openSetView(id){
+  const st=S.sets.find(v=>v.id===id); if(!st)return;
+  const by={}, un=[];
+  S.cards.filter(c=>c.setId===id).forEach(c=>{ if(c.setNo&&!by[c.setNo])by[c.setNo]=c; else if(!c.setNo)un.push(c); });
+  const own=S.cards.filter(c=>c.setId===id&&c.status!=='want').length;
+  showSheet(`
+    <h2 class="disp" style="margin:0 0 4px;">🧩 ${esc(st.name)}</h2>
+    <p class="sub" style="margin:4px 0;">${own}/${st.total} 張${own>=st.total?' — 集滿了!!🎉':''}。虛線格=還缺,點一下標「徵求中」自動進換卡清單。</p>
+    <div class="slotgrid">
+      ${Array.from({length:st.total},(_,k)=>{
+        const n=k+1, c=by[n];
+        if(c&&c.status!=='want'){ const ps=photoSrc(c.photo);
+          return `<div class="slot" onclick="closeSheet();openHolo('${c.id}')">${ps?`<img src="${ps}" alt="">`:'💿'}<span class="no">#${n}</span></div>`; }
+        if(c) return `<div class="slot want" onclick="openCardSheet('${c.id}')">🔎<span class="no">#${n}</span></div>`;
+        return `<div class="slot miss" onclick="wantSlot('${id}',${n})">?<span class="no">#${n}</span></div>`;
+      }).join('')}
+    </div>
+    ${un.length?`<p class="sub" style="margin-top:8px; font-size:12px;">另有 ${un.length} 張已入組但未指定號碼(編輯小卡可補 #號)</p>`:''}
+    <div class="row" style="margin-top:14px;">
+      <button class="btn line" onclick="openSetSheet('${id}')">✏️ 編輯卡組</button>
+      <button class="btn" onclick="closeSheet()">關閉</button>
+    </div>`);
+}
+function wantSlot(setId,no){
+  const st=S.sets.find(v=>v.id===setId); if(!st)return;
+  S.cards.push({id:uid(),artistId:st.artistId,category:'其他',status:'want',setId,setNo:no,title:`${st.name} #${no}`,photo:null,memoryId:''});
+  save(); toast(`#${no} 標記徵求中,已加入換卡清單 🔎`,'🧩'); openSetView(setId);
+}
+function openSetSheet(id){
+  const st=id?S.sets.find(v=>v.id===id):null; EDITING=st?{t:'set',id}:null;
+  showSheet(`
+    <h2 class="disp" style="margin:0 0 4px;">🧩 ${st?'編輯卡組':'新增卡組'}</h2>
+    <p class="sub" style="margin:4px 0;">同一個 Tour / 專輯的一組 N 款,集卡進度一目瞭然。</p>
+    <label class="f">卡組名稱</label><input id="sName" value="${st?esc(st.name):''}" placeholder="例:STUNNING US 場販小卡組">
+    <div class="row">
+      <div><label class="f">自擔</label><select id="sArtist">${artistOpts(st?st.artistId:null)}</select></div>
+      <div><label class="f">一組幾款</label><select id="sTotal">${Array.from({length:20},(_,k)=>`<option ${st&&st.total===k+1?'selected':(!st&&k===7?'selected':'')}>${k+1}</option>`).join('')}</select></div>
+    </div>
+    <div class="row" style="margin-top:14px;">
+      <button class="btn line" onclick="closeSheet()">取消</button>
+      <button class="btn" onclick="saveSet()">${st?'儲存變更':'建立卡組'}</button>
+    </div>
+    ${st?`<button class="btn line wide" style="margin-top:10px;" onclick="delSet('${st.id}')">🗑 刪除卡組(卡片保留,只解除歸屬)</button>`:''}`);
+}
+function saveSet(){
+  const n=document.getElementById('sName').value.trim(); if(!n)return toast('名稱必填','⚠️');
+  const o={name:n,artistId:document.getElementById('sArtist').value,total:+document.getElementById('sTotal').value};
+  if(EDITING&&EDITING.t==='set'){ Object.assign(S.sets.find(v=>v.id===EDITING.id),o); }
+  else S.sets.push({id:uid(),...o});
+  EDITING=null; save(); closeSheet(); renderPC(); toast('卡組已儲存','🧩');
+}
+async function delSet(id){
+  if(!(await uiConfirm('刪除這個卡組?卡片會保留,只解除歸屬。','刪除','留著')))return;
+  S.cards.forEach(c=>{ if(c.setId===id){ c.setId=''; c.setNo=null; } });
+  S.sets=S.sets.filter(v=>v.id!==id); EDITING=null; save(); closeSheet(); renderPC(); toast('已刪除卡組');
+}
+/* ================= 批次收卡 ================= */
+let BATCH=[];
+function openBatchCards(){
+  BATCH=[];
+  showSheet(`
+    <h2 class="disp" style="margin:0 0 4px;">⬆️ 批次收卡</h2>
+    <p class="sub" style="margin:4px 0;">共通資訊填一次,一疊卡一次入庫。卡名可留空=自動編號;有選卡組會自動補缺號。</p>
+    <div class="row">
+      <div><label class="f">自擔</label><select id="bArtist">${artistOpts(null)}</select></div>
+      <div><label class="f">分類</label><select id="bCat">${CARD_CATS.map(x=>`<option>${x}</option>`).join('')}</select></div>
+    </div>
+    <div class="row">
+      <div><label class="f">來源公演(選填)</label><select id="bMem"><option value="">—</option>${[...S.memories].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,40).map(m=>`<option value="${m.id}">${m.date.slice(2)} ${esc(m.title)}</option>`).join('')}</select></div>
+      <div><label class="f">卡組(選填)</label><select id="bSet"><option value="">—</option>${S.sets.map(st=>`<option value="${st.id}">${esc(st.name)}</option>`).join('')}</select></div>
+    </div>
+    <label class="f">卡面照片(可一次多選)</label>
+    <input type="file" accept="image/*" multiple onchange="batchAdd(this)">
+    <div id="batchList"></div>
+    <div class="row" style="margin-top:14px;">
+      <button class="btn line" onclick="closeSheet()">取消</button>
+      <button class="btn" onclick="saveBatch()">全部收進卡冊(<span id="batchN">0</span>)</button>
+    </div>`);
+}
+async function batchAdd(input){
+  const files=[...(input.files||[])]; input.value='';
+  const room=20-BATCH.length;
+  if(files.length>room)toast('一次最多 20 張,超出的略過','⚠️');
+  for(const f of files.slice(0,room)){ const d=await compressFile(f); if(d)BATCH.push({data:d,name:''}); }
+  renderBatch();
+}
+function renderBatch(){
+  const el=document.getElementById('batchList'); if(!el)return;
+  el.innerHTML=BATCH.map((b,i)=>`
+    <div style="display:flex; gap:8px; align-items:center; margin:8px 0;">
+      <img src="${b.data}" alt="" style="width:42px; height:62px; object-fit:cover; border:2px solid var(--ink); border-radius:8px; flex:0 0 auto;">
+      <input placeholder="卡名(留空=自動編號)" value="${esc(b.name)}" oninput="BATCH[${i}].name=this.value" style="flex:1; min-width:0;">
+      <button class="btn sm line" onclick="BATCH.splice(${i},1);renderBatch()">✕</button>
+    </div>`).join('');
+  const n=document.getElementById('batchN'); if(n)n.textContent=BATCH.length;
+}
+async function saveBatch(){
+  if(!BATCH.length)return toast('先選卡面照片','⚠️');
+  const artistId=document.getElementById('bArtist').value, cat=document.getElementById('bCat').value;
+  const memoryId=document.getElementById('bMem').value||'', setId=document.getElementById('bSet').value||'';
+  const st=setId?S.sets.find(v=>v.id===setId):null;
+  const used=new Set(S.cards.filter(c=>c.setId===setId&&c.setNo).map(c=>c.setNo));
+  const nextNo=()=>{ if(!st)return null; for(let k=1;k<=st.total;k++){ if(!used.has(k)){ used.add(k); return k; } } return null; };
+  const base=st?st.name:cat;
+  for(let i=0;i<BATCH.length;i++){
+    const ref=await savePhoto(BATCH[i].data);
+    const no=nextNo();
+    S.cards.push({id:uid(),artistId,category:cat,status:'keep',memoryId,setId,setNo:no,
+      title:BATCH[i].name.trim()||`${base} #${no||i+1}`,photo:ref});
+  }
+  const n=BATCH.length; BATCH=[];
+  save(); closeSheet(); go('pc'); toast(`一次收進 ${n} 張小卡!`,'💿');
 }
 let holoOn=false;
 function openHolo(id){
@@ -1799,8 +2061,9 @@ async function shareCountdown(){
   const nx=fut.find(e=>e.type==='演出')||fut[0];
   if(!nx) return toast('還沒有未來行程,先到日曆加一筆','📅');
   const a=artist(nx.artistId)||active();
-  const d=Math.ceil((new Date(nx.date+'T'+(nx.time||'00:00'))-new Date())/864e5);
-  const dTxt=d<=0?'D-DAY':'D-'+d;
+  /* 以日曆日計算:公演日=D-0 */
+  const d=Math.round((new Date(nx.date+'T00:00')-new Date(todayStr()+'T00:00'))/864e5);
+  const dTxt=d<=0?'D-0':'D-'+d;
   /* 標語每天不同:D-10 以內每天固定專屬文案,其餘依剩餘天數輪播(天數每天-1,文案自然天天換) */
   const SLOG_EXACT={
     1:'明天見!今晚根本睡不著 🫨',
@@ -1867,7 +2130,7 @@ async function shareCountdown(){
   x.fillText(slog,0,Math.round(sfs*0.36));
   x.restore();
   x.fillStyle='#221D2B'; x.font="700 34px 'Baloo 2','Noto Sans TC',sans-serif";
-  x.fillText(`#倒數${d>0?d+'天':'中'} #等${(a.group||a.name).replace(/\s+/g,'')}`,540,1768);
+  x.fillText(`#${d>0?'倒數'+d+'天':'就是今天'} #等${(a.group||a.name).replace(/\s+/g,'')}`,540,1768);
   x.font="700 30px 'Baloo 2',sans-serif"; x.globalAlpha=.7;
   x.fillText('✦ FanDiary 應援日誌 ✦',540,1836); x.globalAlpha=1;
   openShareSheet(cv.toDataURL('image/png'),'fandiary-countdown.png');
@@ -2090,6 +2353,31 @@ function copyMeal(btn){
   else fb();
 }
 
+/* ================= 多語言(介面骨架) ================= */
+const I18N={
+ ja:{'nav.home':'ホーム','nav.cal':'予定','nav.mem':'思い出','nav.war':'チケット','nav.pc':'トレカ',
+  't.cal':'スケジュール','t.mem':'思い出タイムライン','t.war':'チケット作戦室','t.pc':'トレカコレクション',
+  't.map':'遠征マップ','t.money':'推し活支出','t.share':'戦績シェアカード','t.set':'設定',
+  'b.artist':'+ 推し','b.meal':'🍚 空き日','b.todo':'☰ ToDo','b.addEvent':'+ 予定','b.share':'📤 シェア',
+  'b.addMem':'+ 参戦記録','b.trade':'🔁 トレード','b.addCard':'+ トレカ','b.addExp':'+ 支出','b.home':'← ホーム'},
+ ko:{'nav.home':'홈','nav.cal':'캘린더','nav.mem':'추억','nav.war':'티켓팅','nav.pc':'포카',
+  't.cal':'일정 캘린더','t.mem':'추억 타임라인','t.war':'티켓팅 작전실','t.pc':'포카 컬렉션',
+  't.map':'원정 지도','t.money':'덕질 지출','t.share':'전적 공유 카드','t.set':'설정',
+  'b.artist':'+ 최애','b.meal':'🍚 빈날','b.todo':'☰ 할일','b.addEvent':'+ 일정','b.share':'📤 공유',
+  'b.addMem':'+ 참전 기록','b.trade':'🔁 교환','b.addCard':'+ 포카','b.addExp':'+ 지출','b.home':'← 홈'}
+};
+function applyLang(){
+  const lang=(S.ui&&S.ui.lang)||'zh';
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    if(!el.dataset.zh)el.dataset.zh=el.textContent;
+    el.textContent=(lang!=='zh'&&I18N[lang]&&I18N[lang][el.dataset.i18n])||el.dataset.zh;
+  });
+  const sel=document.getElementById('langSel'); if(sel)sel.value=lang;
+  document.documentElement.lang=lang==='ja'?'ja':(lang==='ko'?'ko':'zh-Hant');
+}
+function setLang(v){ S.ui.lang=v; save(); applyLang();
+  toast({zh:'介面語言:繁體中文',ja:'言語:日本語に切替',ko:'언어: 한국어로 변경'}[v]||'','🌐'); }
+
 /* ================= PWA:安裝與離線 ================= */
 let PWA_PROMPT=null;
 if('serviceWorker' in navigator){
@@ -2128,6 +2416,7 @@ async function pwaInstall(){
     <p class="sub" style="margin:8px 0 0; font-size:12px;">⚠️ 需要用 https 網址開啟才能安裝;安裝後資料存在手機裡,記得定期到設定「備份」。</p>
     <div style="margin-top:12px;"><button class="btn wide" onclick="closeSheet()">知道了</button></div>`);
 }
+applyLang(); /* 開機套用已選語言 */
 /* 首次到訪的溫柔提示(只提示一次,已安裝不提示) */
 setTimeout(()=>{
   if(!isStandalone()&&!S.ui.pwaHinted&&location.protocol.startsWith('http')){
@@ -2163,7 +2452,7 @@ async function factoryReset(){
 /* ================= 備份 / 還原 ================= */
 async function exportData(){
   const copy=JSON.parse(JSON.stringify(S));
-  for(const it of copy.cards||[]){
+  for(const it of [...(copy.cards||[]),...(copy.events||[])]){ /* 行程 Teaser 圖也要內嵌,否則還原後會消失 */
     if(it.photo&&it.photo.startsWith('idb:')) it.photo=PHOTO_CACHE.get(it.photo)||await idbGet(it.photo)||null;
   }
   for(const m of copy.memories||[]){
@@ -2390,10 +2679,18 @@ async function delArtist(id){
 }
 
 /* events */
-function openEventSheet(id){
-  const e=id?S.events.find(x=>x.id===id):null; EDITING=e?{t:'event',id}:null;
+function openEventSheet(id,dupId){
+  /* dupId:複製模式 → 用來源行程預填,但存檔時建立新行程(日期預設+1天,適合連續場) */
+  const src=dupId?S.events.find(x=>x.id===dupId):null;
+  let e=id?S.events.find(x=>x.id===id):null;
+  if(!e&&src){
+    const nd=new Date(src.date+'T00:00'); nd.setDate(nd.getDate()+1);
+    e={...src,id:null,date:nd.toISOString().slice(0,10),join:'',memoryId:null,photo:null};
+  }
+  EDITING=(id&&e)?{t:'event',id}:null;
   showSheet(`
-    <h2 class="disp" style="margin:0 0 4px;">📅 ${e?'編輯行程':'新增行程'}</h2>
+    <h2 class="disp" style="margin:0 0 4px;">📅 ${id?'編輯行程':(src?'📄 複製行程':'新增行程')}</h2>
+    ${src?`<p class="sub" style="margin:4px 0;">已帶入「${esc(src.name)}」的內容,日期自動+1天,改一改就能存(D2/隔日場超方便)。</p>`:''}
     ${e?'':`<div class="row" style="margin:8px 0 2px;">
       <button class="btn sm">✍️ 手動輸入</button>
       <button class="btn sm line" onclick="openPasteSheet()">📋 聰明貼上</button>
@@ -2416,8 +2713,8 @@ function openEventSheet(id){
     <label class="f">場次歸屬</label><select id="eUnit"><option value="" ${e&&!e.unit?'selected':''}>—</option><option ${e&&e.unit==='團體'?'selected':''}>團體</option><option ${e&&e.unit==='SOLO'?'selected':''}>SOLO</option></select>
     <label class="f">備註(售票網/連結)</label><input id="eNote" value="${e?esc(e.note||''):''}" placeholder="選填">
     <div style="margin-top:16px;" class="row">
-      <button class="btn line" onclick="closeSheet()">取消</button>
-      <button class="btn" onclick="saveEvent()">${e?'儲存變更':'存入日曆'}</button>
+      ${id?`<button class="btn line" onclick="openEventSheet(null,'${id}')">📄 複製</button>`:`<button class="btn line" onclick="closeSheet()">取消</button>`}
+      <button class="btn" onclick="saveEvent()">${id?'儲存變更':'存入日曆'}</button>
     </div>`);
 }
 async function saveEvent(){
@@ -2460,6 +2757,7 @@ function openMemSheet(id){
     <input id="mPhoto" type="file" accept="image/*" multiple onchange="memPhotoAdd(this)">
     <label class="f">這場有互動福利?(點選蓋章,自動記進印花簿)</label>
     <div class="legend" id="memPerkPick" style="margin:4px 0;"></div>
+    <p class="sub" style="font-size:11px; margin:2px 0 0;">✍️ 想寫互動細節(合照 pose、簽售對話…)?存檔後到回憶頁上方「🎟️ 互動印花簿」點該印章補寫心情。</p>
     <label class="f">參戰心得</label><textarea id="mNote" rows="3">${m?esc(m.note||''):''}</textarea>
     <div style="margin-top:16px;" class="row">
       <button class="btn line" onclick="closeSheet()">取消</button>
@@ -2488,6 +2786,18 @@ async function saveMem(){
     if(p.ref)photos.push(p.ref);
     else if(p.data){ const ref=await savePhoto(p.data); if(ref)photos.push(ref); }
   }
+  /* 日期同步防呆:回憶日期若與連結的日曆行程不同,必須二選一(避免兩邊對不上) */
+  const linkedEv=(EDITING&&EDITING.t==='mem'?S.events.find(x=>x.memoryId===EDITING.id):null)
+               ||(MEM_FROM?S.events.find(x=>x.id===MEM_FROM):null);
+  if(linkedEv&&linkedEv.date!==o.date){
+    const pick=await uiChoice(`📅 日期對不上了<br><span style="font-size:12.5px; font-weight:500;">回憶寫的是 <b>${o.date}</b>,日曆行程「${esc(linkedEv.name)}」是 <b>${linkedEv.date}</b>。要以哪個為準?</span>`,[
+      {label:'📅 日曆行程也改成 '+o.date,value:'sync',primary:true},
+      {label:'↩︎ 回憶改回 '+linkedEv.date,value:'revert'}
+    ]);
+    if(pick==='sync')linkedEv.date=o.date;
+    else if(pick==='revert')o.date=linkedEv.date;
+    else return; /* 沒選=先不存,回到表單 */
+  }
   let nid=null;
   if(EDITING&&EDITING.t==='mem'){
     const m=S.memories.find(x=>x.id===EDITING.id);
@@ -2507,7 +2817,7 @@ async function saveMem(){
     const fresh=news.filter(t=>!S.perks.some(p=>p.type===t));
     news.forEach(t=>S.perks.push({id:uid(),type:t,artistId:o.artistId,date:o.date,label:'',event:o.title,note:'',memoryId:nid}));
     S.perks=S.perks.filter(p=>p.memoryId!==nid||MEM_PK.has(p.type));
-    if(fresh.length)setTimeout(()=>toast(`🎉 解鎖新印花:${fresh.map(t=>perkDef(t)[2]).join('、')}!`,'🎟️'),900);
+    if(fresh.length)setTimeout(()=>toast(`🎉 解鎖新印花:${fresh.map(t=>perkDef(t)[2]).join('、')}!到印花簿可補寫心情`,'🎟️'),900);
   }
   if(MEM_FROM){ const ev=S.events.find(x=>x.id===MEM_FROM); if(ev){ ev.memoryId=nid; ev.join='done'; toast('已寫進回憶,行程標記 ✅','📖'); } MEM_FROM=null; } else toast('已儲存');
   EDITING=null; save(); closeSheet(); go('mem');
@@ -2599,17 +2909,31 @@ function openCardSheet(id){
     </div>
     <label class="f">狀態(想換走/徵求中會列入換卡貼文)</label>
     <select id="cSt">${Object.keys(CARD_ST).map(k=>`<option value="${k}" ${c&&c.status===k?'selected':''}>${CARD_ST[k]}</option>`).join('')}</select>
+    <label class="f">來源公演(選填,連結參戰回憶)</label>
+    <select id="cMem"><option value="">—</option>${[...S.memories].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,40).map(m=>`<option value="${m.id}" ${c&&c.memoryId===m.id?'selected':''}>${m.date.slice(2)} ${esc(m.title)}</option>`).join('')}</select>
+    <div class="row">
+      <div><label class="f">卡組(選填)</label><select id="cSet" onchange="cSetNoOpts()"><option value="">—</option>${S.sets.map(st=>`<option value="${st.id}" ${c&&c.setId===st.id?'selected':''}>${esc(st.name)}</option>`).join('')}</select></div>
+      <div><label class="f">卡組號碼</label><select id="cSetNo"></select></div>
+    </div>
     <label class="f">卡面照片${c&&c.photo?'(不選=保留原圖)':''}</label><input id="cPhoto" type="file" accept="image/*">
     <div style="margin-top:16px;" class="row">
       <button class="btn line" onclick="closeSheet()">取消</button>
       <button class="btn" onclick="saveCard()">${c?'儲存變更':'收進卡冊'}</button>
     </div>
     ${c?`<button class="btn line wide" style="margin-top:10px;" onclick="delCard('${c.id}')">🗑 從卡冊移除這張</button>`:''}`);
+  cSetNoOpts(c?c.setNo:null);
+}
+function cSetNoOpts(cur){
+  const sel=document.getElementById('cSetNo'), sid=document.getElementById('cSet')?.value;
+  if(!sel)return;
+  const st=S.sets.find(v=>v.id===sid);
+  sel.innerHTML='<option value="">—</option>'+(st?Array.from({length:st.total},(_,k)=>`<option value="${k+1}" ${cur===k+1?'selected':''}>#${k+1}</option>`).join(''):'');
 }
 async function saveCard(){
   const t=document.getElementById('cTitle').value.trim(); if(!t)return toast('名稱必填','⚠️');
   const newPhoto=await readPhoto(document.getElementById('cPhoto'));
-  const o={title:t,category:document.getElementById('cCat').value,status:document.getElementById('cSt').value,artistId:document.getElementById('cArtist').value};
+  const o={title:t,category:document.getElementById('cCat').value,status:document.getElementById('cSt').value,artistId:document.getElementById('cArtist').value,
+    memoryId:document.getElementById('cMem').value||'',setId:document.getElementById('cSet').value||'',setNo:+document.getElementById('cSetNo').value||null};
   const cref=newPhoto?await savePhoto(newPhoto):null;
   if(EDITING&&EDITING.t==='card'){ const c=S.cards.find(x=>x.id===EDITING.id); Object.assign(c,o); if(cref){ dropPhoto(c.photo); c.photo=cref; } }
   else S.cards.push({id:uid(),...o,photo:cref});

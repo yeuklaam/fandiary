@@ -1,6 +1,6 @@
 /* FanDiary Service Worker
    更新 App 時:把 VERSION 加 1,使用者下次開啟會自動換新快取 */
-const VERSION = 'fandiary-v1';
+const VERSION = 'fandiary-v3';
 const SHELL = [
   './',
   './index.html',

@@ -1,6 +1,6 @@
 {
   "name": "應援日誌 FanDiary",
-  "short_name": "FanDiary",
+  "short_name": "FanDiary 應援日誌",
   "description": "追星族的參戰行程管理與回憶收藏 App:搶票作戰、參戰回憶、足跡地圖、小卡收藏、互動印花簿。",
   "lang": "zh-Hant",
   "start_url": "./index.html",
@@ -10,9 +10,27 @@
   "background_color": "#FFF6E9",
   "theme_color": "#FFF6E9",
   "icons": [
-    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
-    { "src": "icons/maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
-    { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ]
 }
