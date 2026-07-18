@@ -2367,7 +2367,7 @@ const I18N={
   'b.addMem':'+ 참전 기록','b.trade':'🔁 교환','b.addCard':'+ 포카','b.addExp':'+ 지출','b.home':'← 홈'}
 };
 function applyLang(){
-  const lang=(S.ui&&S.ui.lang)||'zh';
+  const lang=(S&&S.ui&&S.ui.lang)||'zh';
   document.querySelectorAll('[data-i18n]').forEach(el=>{
     if(!el.dataset.zh)el.dataset.zh=el.textContent;
     el.textContent=(lang!=='zh'&&I18N[lang]&&I18N[lang][el.dataset.i18n])||el.dataset.zh;
@@ -2416,10 +2416,9 @@ async function pwaInstall(){
     <p class="sub" style="margin:8px 0 0; font-size:12px;">⚠️ 需要用 https 網址開啟才能安裝;安裝後資料存在手機裡,記得定期到設定「備份」。</p>
     <div style="margin-top:12px;"><button class="btn wide" onclick="closeSheet()">知道了</button></div>`);
 }
-applyLang(); /* 開機套用已選語言 */
 /* 首次到訪的溫柔提示(只提示一次,已安裝不提示) */
 setTimeout(()=>{
-  if(!isStandalone()&&!S.ui.pwaHinted&&location.protocol.startsWith('http')){
+  if(S&&S.ui&&!isStandalone()&&!S.ui.pwaHinted&&location.protocol.startsWith('http')){
     S.ui.pwaHinted=true; save();
     toast('可以把 FanDiary 加到主畫面喔!在設定 → 📲','💡');
   }
@@ -3049,7 +3048,7 @@ function tour(i){
 }
 function endTour(){ S.ui=S.ui||{}; S.ui.seenTour=1; save(); closeSheet(); toast('隨時可從 ⚙️ 設定重看導覽','🔰'); }
 
-load(); applyTheme(); go('home'); initPhotoStore();
+load(); applyTheme(); applyLang(); go('home'); initPhotoStore();
 if(!(S.ui&&S.ui.seenTour)){ S.ui=S.ui||{}; S.ui.seenTour=1; save(); setTimeout(()=>tour(0),400); }
 if(!S.ui.seenIntro) setTimeout(()=>showIntro(1),400);
 </script>
