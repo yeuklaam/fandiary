@@ -49,7 +49,7 @@ icons/                ← 5 個圖示(Android 192/512、maskable、iOS 180)
 2. **請定期備份**:手機儲存空間吃緊時,系統有機率清掉網頁資料
    (iOS 對主畫面 App 較寬容,但仍建議每次大量記錄後備份一次)。
 3. **更新 App**:改了 index.html 後,把 sw.js 第一行的
-   目前為 `VERSION = 'fandiary-v7'`;下次更新請改成 v8,使用者重開 App 就會拿到新版。
+   `VERSION = 'fandiary-v1'` 改成 v2,使用者重開 App 就會拿到新版。
 
 ## PWA 給了什麼 / 沒給什麼
 
@@ -61,6 +61,10 @@ icons/                ← 5 個圖示(Android 192/512、maskable、iOS 180)
 ❌ 上架 App Store / Google Play:PWA 不經商店;要上架時
    同一份程式碼可用 Capacitor 包成原生 App,再議
 
-## v8 發佈提醒
 
-本包已包含完整 `icons/` 資料夾。部署時請整個資料夾一起上傳，不要只替換 `index.html`；`sw.js` 已更新為 `fandiary-v8`，使用者重新開啟 App 後會取得新版快取。
+## SNS 連結預覽（v9）
+
+已加入 Open Graph、Twitter Card、SEO description 與 `social-preview.png`。
+部署時請連同預覽圖一起上傳。若平台仍顯示舊預覽，通常是 SNS 快取，需等待更新或使用平台的分享偵錯工具重新抓取。
+
+注意：目前 `og:image` 使用相對路徑。大多數平台可正常解析；正式網域確定後，改成完整 HTTPS 圖片網址相容性最佳。
