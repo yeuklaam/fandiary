@@ -386,6 +386,7 @@ body.calm .stat em,body.calm .hero-count.soon{animation:none;}
   <div class="oshi-row" id="oshiRow"></div>
   <div id="sinceLine" style="margin:-2px 2px 0;"></div>
   <div id="greetLine"></div>
+  <div id="demoNotice"></div>
   <div id="alerts"></div>
 
   <div class="card tilt-l" id="nextEventCard" onclick="go('cal')" style="cursor:pointer;">
@@ -634,19 +635,23 @@ body.calm .stat em,body.calm .hero-count.soon{animation:none;}
     <div class="tape t2"></div>
     <b class="disp" style="font-size:16px;">💾 資料</b>
     <p class="sub" style="margin:6px 0;">🔒 所有資料<b>只存在這台裝置</b>,不上傳雲端、開發者也看不到。清瀏覽器資料或換機前先備份;備份檔含照片。</p>
+    <div class="warn" style="margin:10px 0; box-shadow:2px 2px 0 var(--ink);">
+      <b>第一次使用?</b> 畫面中的行程、回憶和支出是示範資料,放心試玩。準備正式開始時,可一鍵清除,不會動到你自己新增的紀錄。
+    </div>
     <div class="row">
       <button class="btn line" onclick="exportData()">💾 備份</button>
       <button class="btn line" onclick="openRestorePaste()">📥 還原</button>
     </div>
     <div style="margin-top:10px;"><button class="btn sm wide" onclick="exportICS()">📆 匯出未來行程到手機行事曆(.ics)</button></div>
-    <div style="margin-top:10px;"><button class="btn sm wide" id="pwaInstallBtn" onclick="pwaInstall()">📲 安裝到主畫面</button></div>
-    <div style="margin-top:10px;"><button class="btn sm wide" onclick="clearDemoData()">🧹 一鍵清除示範資料(保留自己的紀錄)</button></div>
+    <div style="margin-top:12px;"><button class="btn wide" id="pwaInstallBtn" onclick="pwaInstall()">📲 安裝到主畫面・推薦</button></div>
+    <p class="sub" style="font-size:11px; margin:5px 2px 0;">安裝後會以獨立圖示、全螢幕視窗開啟;首次連線完成後也可離線打開,操作更像真正 App。</p>
+    <div style="margin-top:12px;"><button class="btn line wide" onclick="clearDemoData()">🧹 清除示範資料・開始我的日誌</button></div>
     <div style="margin-top:10px;"><button class="btn sm line wide" onclick="factoryReset()">🔄 恢復出廠預設(清除所有資料)</button></div>
   </div>
   <div class="card">
     <b class="disp" style="font-size:16px;">🔰 其他</b>
     <div style="margin-top:10px;"><button class="btn sm line wide" onclick="tour(0)">重看新手導覽</button></div>
-    <p class="sub" style="margin:10px 0 0; font-size:11.5px;">FanDiary 應援日誌 · 原型版 · 所有資料僅存於本機</p>
+    <p class="sub" style="margin:10px 0 0; font-size:11.5px;">FanDiary 應援日誌 · 原型版 v8 · 所有資料僅存於本機</p>
   </div>
 </section>
 
@@ -742,6 +747,27 @@ const toTWD=e=>Math.round((+e.amount||0)*(CUR_RATE[e.cur||'TWD']||1));
 const baseCur=()=>(S&&S.ui&&S.ui.baseCur)||'TWD';
 const toBase=e=>Math.round((+e.amount||0)*(CUR_RATE[e.cur||'TWD']||1)/(CUR_RATE[baseCur()]||1));
 const JOIN={want:'🙋 想參戰',won:'🎫 中票!',lost:'💧 沒中',done:'✅ 已參戰'};
+const ROLE_META={
+  main:{label:'主擔',icon:'⭐',pill:'acc'},
+  sub:{label:'副擔',icon:'💛',pill:'sun'},
+  flirt:{label:'浮氣',icon:'💫',pill:'sky'},
+  former:{label:'舊愛',icon:'🕰️',pill:'ghost'}
+};
+const UNCATEGORIZED_ID='__uncategorized__';
+const ARTIST_LINKED_KEYS=['events','memories','cards','expenses','perks','sets','tickets'];
+const roleMeta=role=>ROLE_META[role]||ROLE_META.sub;
+const realArtists=()=>S.artists.filter(a=>!a.system);
+const uncategorizedArtist=()=>S.artists.find(a=>a.id===UNCATEGORIZED_ID);
+function ensureUncategorizedArtist(){
+  let a=uncategorizedArtist();
+  if(!a){
+    a={id:UNCATEGORIZED_ID,name:'未分類',group:'',color:'#8D8795',role:'former',since:'',system:true};
+    S.artists.push(a);
+  }else a.system=true;
+  return a;
+}
+const linkedToArtistCount=id=>ARTIST_LINKED_KEYS.reduce((n,k)=>n+(S[k]||[]).filter(v=>v.artistId===id).length,0);
+const hasDemoData=()=>S.artists.some(a=>a.demo)||ARTIST_LINKED_KEYS.some(k=>(S[k]||[]).some(v=>v.demo||(k==='events'&&(v.name||'').includes('【示範】'))));
 let S=null;
 const uid=()=>Math.random().toString(36).slice(2,9);
 let EDITING=null, CUR_PG='home';
@@ -873,7 +899,13 @@ async function initPhotoStore(){ idb=await idbOpen(); await photoMigrate(); go(C
 
 function migrate(){
   ['events','memories','cards','expenses','results','teammates','cheat','perks','sets','tickets'].forEach(k=>{ if(!S[k])S[k]=[]; });
-  S.artists.forEach((a,i)=>{ if(!a.role)a.role=i===0?'main':'sub'; if(a.since===undefined)a.since=''; });
+  S.artists.forEach((a,i)=>{ if(!ROLE_META[a.role])a.role=i===0?'main':'sub'; if(a.since===undefined)a.since=''; if(a.id===UNCATEGORIZED_ID)a.system=true; });
+  const known=new Set(S.artists.map(a=>a.id));
+  const hasOrphans=ARTIST_LINKED_KEYS.some(k=>S[k].some(v=>v.artistId&&!known.has(v.artistId)));
+  if(hasOrphans){
+    ensureUncategorizedArtist();
+    ARTIST_LINKED_KEYS.forEach(k=>S[k].forEach(v=>{ if(v.artistId&&!known.has(v.artistId))v.artistId=UNCATEGORIZED_ID; }));
+  }
   S.cards.forEach(c=>{ if(!c.category)c.category='其他'; if(!c.status)c.status='keep'; });
   S.memories.forEach(m=>{ if(!m.fit)m.fit='cover';
     if(!Array.isArray(m.photos)) m.photos=m.photo?[m.photo]:[];
@@ -922,27 +954,30 @@ async function clearDemoData(){
     S[k]=S[k].filter(v=>!isDemo(k,v));
   });
   S.cheat=(S.cheat||[]).filter(c=>!c.demo);
-  const others=S.artists.filter(a=>!a.demo);
+  const others=S.artists.filter(a=>!a.demo&&!a.system);
+  const systemArtists=S.artists.filter(a=>a.system);
   if(others.length){
     /* 已有自己的自擔 → 連示範自擔一起移除(含其殘留紀錄) */
     const ids=new Set(S.artists.filter(a=>a.demo).map(a=>a.id));
     ['events','memories','cards','expenses','perks','sets','tickets'].forEach(k=>{ S[k]=S[k].filter(v=>!ids.has(v.artistId)); });
-    S.artists=others;
+    S.artists=[...others,...systemArtists];
     if(!others.some(a=>a.role==='main')) others[0].role='main';
-    if(!artist(S.activeArtistId)) S.activeArtistId=others[0].id;
-    save(); applyTheme(); go('home');
+    if(!artist(S.activeArtistId)||artist(S.activeArtistId).system) S.activeArtistId=others[0].id;
+    S.ui.demoHintDismissed=1;
+    save(); closeSheet(); applyTheme(); go('home');
     toast('示範資料已清除,只剩你自己的紀錄!','🧹');
   }else{
     /* 只有示範自擔 → 保留一位當空殼,提示改成自己的本命 */
     S.artists.forEach(a=>delete a.demo);
-    save(); go('home');
+    S.ui.demoHintDismissed=1;
+    save(); closeSheet(); go('home');
     toast('示範紀錄已清除!點「+ 自擔」把他換成你的本命吧','💖');
   }
 }
 function load(){ try{S=JSON.parse(localStorage.getItem(LS))}catch(e){} if(!S||!S.artists) S=seed(); migrate(); save(); }
 function save(){ try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){ toast('儲存空間已滿','⚠️'); } }
 const artist=id=>S.artists.find(a=>a.id===id);
-const active=()=>artist(S.activeArtistId)||S.artists[0];
+const active=()=>{ const a=artist(S.activeArtistId); return (a&&!a.system)?a:(realArtists()[0]||S.artists[0]); };
 const esc=s=>(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
 /* ================= theme ================= */
@@ -985,20 +1020,32 @@ function go(pg){
 /* ================= home ================= */
 function renderHome(){
   const row=document.getElementById('oshiRow');
-  row.innerHTML=S.artists.map(a=>`
+  row.innerHTML=realArtists().map(a=>`
     <div class="oshi-chip ${a.id===S.activeArtistId?'on':''}" onclick="switchArtist('${a.id}')">
-      <span class="dot" style="background:${a.color}"></span>${a.role==='main'?'⭐':''}${esc(a.name)}
+      <span class="dot" style="background:${a.color}"></span>${roleMeta(a.role).icon} ${esc(a.name)}
     </div>`).join('');
-  const cur=active(), sl=document.getElementById('sinceLine');
+  const cur=active(), sl=document.getElementById('sinceLine'), rm=cur?roleMeta(cur.role):null;
   if(cur&&cur.since){
     const days=Math.max(1,Math.floor((new Date()-new Date(cur.since))/864e5)+1);
-    sl.innerHTML=`<span class="pill ${cur.role==='main'?'acc':'sun'}" style="font-size:11.5px;">${cur.role==='main'?'⭐ 主擔':'💛 副擔'}</span> <span class="pill ghost" style="font-size:11.5px;">💘 入坑 ${days.toLocaleString()} 天</span>`;
-  }else sl.innerHTML=cur?`<span class="pill ghost" style="font-size:11.5px;">${cur.role==='main'?'⭐ 主擔':'💛 副擔'} · 設定入坑日看看你們認識多久了</span>`:'';
+    sl.innerHTML=`<span class="pill ${rm.pill}" style="font-size:11.5px;">${rm.icon} ${rm.label}</span> <span class="pill ghost" style="font-size:11.5px;">💘 入坑 ${days.toLocaleString()} 天</span>`;
+  }else sl.innerHTML=cur?`<span class="pill ${rm.pill}" style="font-size:11.5px;">${rm.icon} ${rm.label}</span> <span class="pill ghost" style="font-size:11.5px;">設定入坑日看看你們認識多久了</span>`:'';
   const tmr=offset(1);
   const soon=S.events.filter(e=>e.date===todayStr()||e.date===tmr).sort((a,b)=>(a.date+(a.time||'')).localeCompare(b.date+(b.time||'')));
   const GREETS=['今天也要為 {n} 好好生活 💪','想 {n} 的第 ∞ 天,照常營業 🥰','{n}:「今天也辛苦了」💌','存錢・搶票・見 {n},人生三大事 ✨','離下次見面,又近了一天 🌱','回憶要記下來,{n} 值得 📖','喝水!{n} 希望你健康地追他 💧'];
   const gi=(Math.floor(Date.now()/864e5)+(S.artists.findIndex(v=>v.id===S.activeArtistId)+1))%GREETS.length;
   document.getElementById('greetLine').innerHTML=`<div class="bubble">💬 ${GREETS[gi].replace('{n}',esc(cur?cur.name:'自擔'))}</div>`;
+  const dn=document.getElementById('demoNotice');
+  if(dn)dn.innerHTML=hasDemoData()&&!S.ui.demoHintDismissed?`
+    <div class="warn" style="margin:10px 0; padding:9px 11px;">
+      <div style="display:flex; gap:8px; align-items:flex-start;">
+        <div style="flex:1;"><b>👀 你正在試玩示範日誌</b><div style="font-size:11.5px; margin-top:2px;">這些行程、回憶與支出都不是你的資料。試完可一鍵清除,再加入自己的自擔。</div></div>
+        <button class="btn sm line" style="flex:0 0 auto;" onclick="dismissDemoHint()" aria-label="稍後再提醒">✕</button>
+      </div>
+      <div style="display:flex; gap:7px; margin-top:7px;">
+        <button class="btn sm line" style="flex:1;" onclick="openArtistForm()">💖 加入我的自擔</button>
+        <button class="btn sm" style="flex:1;" onclick="clearDemoData()">🧹 清除示範</button>
+      </div>
+    </div>`:'';
   document.getElementById('alerts').innerHTML=soon.length?`
     <div class="warn tilt-l" style="margin:12px 0;">⏰ <b>別錯過!</b>${soon.map(e=>`
       <div style="margin-top:3px;">${e.date===todayStr()?'🔴 今天':'🟡 明天'} ${e.time||''} <b>${e.type}</b>|${esc(e.name)}</div>`).join('')}</div>`:'';
@@ -1010,7 +1057,7 @@ function renderHome(){
     document.getElementById('nextName').textContent=nx.name;
     document.getElementById('nextCount').textContent=d<=0?'D-0 🎉':'D-'+d;
     document.getElementById('nextCount').classList.toggle('soon',d<=7);
-    document.getElementById('nextMeta').textContent=`${nx.date} · ${nx.city||''} ${nx.country||''} · ${artist(nx.artistId)?.name||''}${nx.join?' · '+JOIN[nx.join]:''}`;
+    document.getElementById('nextMeta').textContent=`${nx.date} · ${nx.city||''} ${nx.country||''} · ${artist(nx.artistId)?.name||'未分類'}${nx.join?' · '+JOIN[nx.join]:''}`;
   }else{
     document.getElementById('nextName').textContent='還沒有未來行程';
     document.getElementById('nextCount').textContent='D-?';
@@ -1023,7 +1070,8 @@ function renderHome(){
   const tot=S.expenses.reduce((s,e)=>s+toBase(e),0);
   document.getElementById('stMoney').textContent=tot>=10000?(tot/10000).toFixed(1)+'萬':tot.toLocaleString();
 }
-function switchArtist(id){ S.activeArtistId=id; save(); applyTheme(); renderHome(); }
+function switchArtist(id){ const a=artist(id); if(!a||a.system)return; S.activeArtistId=id; save(); applyTheme(); renderHome(); }
+function dismissDemoHint(){ S.ui.demoHintDismissed=1; save(); renderHome(); }
 
 /* ================= calendar ================= */
 let calY,calM,calSel=null,calFilter='全部',calView='month';
@@ -1047,7 +1095,7 @@ function renderCal(){
         <span class="dday">${ddayTxt(e.date)}</span>
         <span class="pill ${TYPE_PILL[e.type]||'mint'}" style="font-size:11px;">${e.type}</span>
         <div style="flex:1;"><div style="font-weight:700;">${esc(e.name)}</div>
-        <div class="who">${e.date} ${e.time||''} · ${e.venue?esc(e.venue)+' · ':''}${esc(artist(e.artistId)?.name||'')} ${e.note?'· '+esc(e.note):''}</div>
+        <div class="who">${e.date} ${e.time||''} · ${e.venue?esc(e.venue)+' · ':''}${esc(artist(e.artistId)?.name||'未分類')} ${e.note?'· '+esc(e.note):''}</div>
         ${evtExtras(e)}</div>
         <button class="btn sm line" onclick="openEventSheet('${e.id}')">✏️</button>
       <button class="btn sm line" onclick="openEventSheet(null,'${e.id}')">📄</button>
@@ -1082,7 +1130,7 @@ function renderDay(){
       <span class="pill ${TYPE_PILL[e.type]||'mint'} evt-tag" style="font-size:11px;">${e.type}</span>
       <div style="flex:1;">
         <div style="font-weight:700;">${esc(e.name)}</div>
-        <div class="who">${e.time||''} ${e.venue?esc(e.venue)+' · ':''}${esc(e.city||'')} ${esc(e.country||'')} · ${esc(artist(e.artistId)?.name||'')} ${e.note?'· '+esc(e.note):''}</div>
+        <div class="who">${e.time||''} ${e.venue?esc(e.venue)+' · ':''}${esc(e.city||'')} ${esc(e.country||'')} · ${esc(artist(e.artistId)?.name||'未分類')} ${e.note?'· '+esc(e.note):''}</div>
         ${evtExtras(e)}
       </div>
       <button class="btn sm line" onclick="openEventSheet('${e.id}')">✏️</button>
@@ -1281,7 +1329,7 @@ function renderTL(){
         <div style="display:flex; justify-content:space-between; gap:6px; align-items:flex-start;">
           <div>
             <span class="pill acc" style="font-size:11px;">${m.date}</span>
-            <span class="pill ghost" style="font-size:11px;">${esc(artist(m.artistId)?.name||'')}</span>
+            <span class="pill ghost" style="font-size:11px;">${esc(artist(m.artistId)?.name||'未分類')}</span>
           </div>
           <div style="white-space:nowrap;">
             <button class="btn sm line" onclick="shareMemCard('${m.id}')">📤</button>
@@ -1800,11 +1848,19 @@ function renderMoney(){
       <span class="bv">${by[c].toLocaleString()}</span>
     </div>`).join('')||'<div class="empty">尚無支出</div>';
   document.getElementById('expList').innerHTML=[...S.expenses].sort((a,b)=>b.date.localeCompare(a.date)).map(e=>`
-    <div class="evt-item">
-      <span class="pill ghost" style="font-size:11px;">${e.cat}</span>
-      <div style="flex:1;"><b style="font-size:13.5px;">${CUR_SIGN[e.cur||'TWD']} ${(+e.amount).toLocaleString()}</b><div class="who">${e.date}${((e.cur||'TWD')!==baseCur())?' · ≈'+CUR_SIGN[baseCur()]+' '+toBase(e).toLocaleString():''} ${e.note?'· '+esc(e.note):''}</div></div>
-      <button class="btn sm line" onclick="openExpSheet('${e.id}')">✏️</button>
-      <button class="btn sm line" onclick="delExp('${e.id}')">🗑</button>
+    <div class="evt-item" style="align-items:flex-start;">
+      <div style="flex:1; min-width:0;">
+        <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+          <span class="pill ghost" style="font-size:10.5px; padding:1px 8px; box-shadow:none;">${e.cat}</span>
+          <b style="font-size:13.5px;">${CUR_SIGN[e.cur||'TWD']} ${(+e.amount).toLocaleString()}</b>
+          ${e.trip?`<span class="pill sky" style="font-size:10.5px; padding:1px 8px; box-shadow:none;">✈️ ${esc(e.trip)}</span>`:''}
+        </div>
+        <div class="who" style="margin-top:3px; line-height:1.45;">${e.date} · ${esc(artist(e.artistId)?.name||'未分類')}${((e.cur||'TWD')!==baseCur())?' · ≈'+CUR_SIGN[baseCur()]+' '+toBase(e).toLocaleString():''}${e.note?' · '+esc(e.note):''}</div>
+      </div>
+      <div style="display:flex; gap:5px; flex:0 0 auto;">
+        <button class="btn sm line" onclick="openExpSheet('${e.id}')" aria-label="編輯支出" title="編輯">✏️</button>
+        <button class="btn sm line" onclick="delExp('${e.id}')" aria-label="刪除支出" title="刪除">🗑</button>
+      </div>
     </div>`).join('')||'<div class="empty">錢包目前平安 💰</div>';
   /* 遠征打包:同名 trip 加總+預算進度 */
   const trips={}; S.expenses.forEach(e=>{ if(e.trip)(trips[e.trip]=trips[e.trip]||[]).push(e); });
@@ -1812,31 +1868,54 @@ function renderMoney(){
   const tEl=document.getElementById('tripPack');
   if(tEl)tEl.innerHTML=Object.keys(trips).length?Object.keys(trips).sort().reverse().map(name=>{
     const sum=trips[name].reduce((s2,e)=>s2+toBase(e),0), bud=tb[name]||0;
-    const pct=bud?Math.min(100,Math.round(sum/bud*100)):0;
-    const key=encodeURIComponent(name);
-    return `<div style="margin:10px 0; cursor:pointer;" onclick="setTripBudget(decodeURIComponent('${key}'))">
-      <div style="display:flex; justify-content:space-between; font-size:13px; font-weight:700; gap:8px;">
-        <span>✈️ ${esc(name)} <span class="sub" style="font-weight:500;">(${trips[name].length} 筆)</span></span>
-        <span>${CUR_SIGN[baseCur()]}${sum.toLocaleString()}${bud?` / ${bud.toLocaleString()}`:''}</span>
+    const usedPct=bud?Math.round(sum/bud*100):0, barPct=Math.min(100,usedPct);
+    const remain=bud-sum, key=encodeURIComponent(name);
+    return `<div style="margin:12px 0; padding:9px 0; border-bottom:2px dashed color-mix(in srgb,var(--ink) 18%, transparent);">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; font-size:13px; font-weight:700; gap:8px;">
+        <span style="min-width:0;">✈️ ${esc(name)} <span class="sub" style="font-weight:500;">(${trips[name].length} 筆)</span></span>
+        <span style="white-space:nowrap;">${CUR_SIGN[baseCur()]}${sum.toLocaleString()}${bud?` / ${bud.toLocaleString()}`:''}</span>
       </div>
-      ${bud?`<div class="bar-track" style="margin-top:4px;"><div class="bar-fill" style="width:${pct}%; background:${pct>=100?'var(--rose)':'var(--mint)'}"></div></div>
-      <div class="sub" style="font-size:11px; text-align:right;">${pct}%${pct>=100?' 預算爆了,但快樂無價 🥲':''}</div>`
-      :`<div class="sub" style="font-size:11px;">點一下設定這趟的預算 →</div>`}
+      ${bud?`<div class="bar-track" style="margin-top:6px;"><div class="bar-fill" style="width:${barPct}%; background:${usedPct>=100?'var(--rose)':'var(--mint)'}"></div></div>
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-top:5px;">
+        <div class="sub" style="font-size:11px;">已用 ${usedPct}% · ${remain>=0?'尚餘 '+CUR_SIGN[baseCur()]+remain.toLocaleString():'超出 '+CUR_SIGN[baseCur()]+Math.abs(remain).toLocaleString()+' 🥲'}</div>
+        <button class="btn sm line" onclick="setTripBudget(decodeURIComponent('${key}'))">✏️ 編輯預算</button>
+      </div>`
+      :`<div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-top:5px;">
+        <div class="sub" style="font-size:11px;">尚未設定預算</div>
+        <button class="btn sm line" onclick="setTripBudget(decodeURIComponent('${key}'))">＋ 設定預算</button>
+      </div>`}
     </div>`;
   }).join(''):'<div class="empty" style="padding:8px 0;">記支出時填「遠征」欄位,同一趟的機票+住宿+票+周邊就會打包在這裡</div>';
 }
 function setTripBudget(name){
   const tb=(S.ui.tripBudgets=S.ui.tripBudgets||{});
+  const spent=S.expenses.filter(e=>e.trip===name).reduce((n,e)=>n+toBase(e),0);
   showSheet(`
-    <h2 class="disp" style="margin:0 0 4px;">✈️ ${esc(name)}</h2>
-    <label class="f">這趟遠征的總預算(${CUR_SIGN[baseCur()]} ${baseCur()},0=不設)</label>
-    <input id="tripBud" type="number" min="0" value="${tb[name]||''}" placeholder="例:50000">
+    <h2 class="disp" style="margin:0 0 4px;">✈️ ${esc(name)}・遠征預算</h2>
+    <p class="sub" style="margin:5px 0;">目前已記錄 ${CUR_SIGN[baseCur()]} ${spent.toLocaleString()}。預算以統計幣別 ${baseCur()} 計算。</p>
+    <label class="f">總預算</label>
+    <input id="tripBud" type="number" min="1" value="${tb[name]||''}" placeholder="例:50000">
     <div class="row" style="margin-top:14px;">
       <button class="btn line" onclick="closeSheet()">取消</button>
-      <button class="btn" onclick="(function(){const v=+document.getElementById('tripBud').value||0; const tb2=S.ui.tripBudgets; if(v)tb2[decodeURIComponent('${encodeURIComponent(name)}')]=v; else delete tb2[decodeURIComponent('${encodeURIComponent(name)}')]; save(); closeSheet(); renderMoney(); toast('預算已更新','✈️');})()">儲存</button>
-    </div>`);
+      <button class="btn" onclick="saveTripBudget(decodeURIComponent('${encodeURIComponent(name)}'))">儲存預算</button>
+    </div>
+    ${tb[name]?`<button class="btn sm line wide" style="margin-top:10px;" onclick="removeTripBudget(decodeURIComponent('${encodeURIComponent(name)}'))">移除預算設定</button>`:''}`);
 }
-function delExp(id){ S.expenses=S.expenses.filter(e=>e.id!==id); save(); renderMoney(); }
+function saveTripBudget(name){
+  const v=+document.getElementById('tripBud').value;
+  if(!v||v<1)return toast('請輸入大於 0 的預算','⚠️');
+  S.ui.tripBudgets[name]=v; save(); closeSheet(); renderMoney(); toast('遠征預算已更新','✈️');
+}
+async function removeTripBudget(name){
+  if(!(await uiConfirm(`移除「${esc(name)}」的預算設定?<br><span style="font-size:12px;font-weight:500;">支出明細不會被刪除。</span>`,'移除預算','取消')))return;
+  delete S.ui.tripBudgets[name]; save(); closeSheet(); renderMoney(); toast('預算設定已移除','↩︎');
+}
+async function delExp(id){
+  const e=S.expenses.find(v=>v.id===id); if(!e)return;
+  const ok=await uiConfirm(`刪除這筆支出?<br><span style="font-size:12.5px; font-weight:500;">${esc(e.cat)} · ${CUR_SIGN[e.cur||'TWD']} ${(+e.amount).toLocaleString()}${e.trip?' · ✈️ '+esc(e.trip):''}${e.note?' · '+esc(e.note):''}</span><br><span style="font-size:11.5px; opacity:.7;">刪除後無法復原,遠征合計與預算進度會立即更新。</span>`,'刪除支出','取消');
+  if(!ok)return;
+  S.expenses=S.expenses.filter(v=>v.id!==id); save(); renderMoney(); toast('支出已刪除','🗑');
+}
 
 /* ================= share card ================= */
 let shareScope='';
@@ -2034,7 +2113,7 @@ function renderShare(){
   x.fillStyle='#221D2B'; x.textAlign='center';
   x.font="800 44px 'Baloo 2','Noto Sans TC',sans-serif"; x.fillText(`${year} 參戰戰績單`,450,140);
   x.font="700 30px 'Noto Sans TC',sans-serif"; x.fillStyle=a.color;
-  x.fillText(shareScope==='all'?'全推し合計':`本命:${a.name}${a.group?'('+a.group+')':''}`,450,196);
+  x.fillText(shareScope==='all'?'全推し合計':(a.system?'未分類紀錄':`${roleMeta(a.role).label}:${a.name}${a.group?'('+a.group+')':''}`),450,196);
   const stats=[[shows+' 場','參戰場次','#fff'],[nations+' 國','應援足跡',a.color],[cards+' 張','小卡收藏','#fff']];
   stats.forEach((s,i)=>{
     const px=70+i*260, py=310;
@@ -2316,7 +2395,7 @@ async function shareYearCard(){
   x.textAlign='center'; x.fillStyle='#221D2B';
   x.font="800 62px 'Baloo 2','Noto Sans TC',sans-serif"; x.fillText(`${yr} 年度參戰回顧`,540,240);
   x.font="700 36px 'Noto Sans TC',sans-serif"; x.fillStyle=a.color;
-  x.fillText(shareScope==='all'?'全推し合計':`本命:${a.name}${a.group?'('+a.group+')':''}`,540,308);
+  x.fillText(shareScope==='all'?'全推し合計':(a.system?'未分類紀錄':`${roleMeta(a.role).label}:${a.name}${a.group?'('+a.group+')':''}`),540,308);
   /* 三格戰績:場次 / 足跡 / 小卡(支出已停用) */
   const stats=[[mems.length+' 場','今年參戰'],[ctys.length+' 國','應援足跡'],[S.cards.filter(c=>inScope(c.artistId)).length+' 張','小卡收藏']];
   stats.forEach((t,i)=>{
@@ -2744,7 +2823,7 @@ if(window.visualViewport){
 }
 function showSheet(html){ sheetEl.innerHTML=html; sheetEl.classList.add('on'); veil.classList.add('on'); document.body.style.overflow='hidden'; }
 function closeSheet(){ sheetEl.classList.remove('on'); veil.classList.remove('on'); document.body.style.overflow=''; if(typeof MEM_FROM!=='undefined') MEM_FROM=null; }
-const artistOpts=sel=>S.artists.map(a=>`<option value="${a.id}" ${a.id===(sel||S.activeArtistId)?'selected':''}>${esc(a.name)}</option>`).join('');
+const artistOpts=sel=>S.artists.map(a=>`<option value="${a.id}" ${a.id===(sel||S.activeArtistId)?'selected':''}>${a.system?'📦':roleMeta(a.role).icon} ${esc(a.name)} · ${a.system?'系統分類':roleMeta(a.role).label}</option>`).join('');
 const countryOpts=sel=>COUNTRIES.map(c=>`<option ${c===sel?'selected':''}>${c}</option>`).join('');
 function compressFile(f){
   return new Promise(async res=>{
@@ -2797,26 +2876,31 @@ let pickColor=SWATCH[0];
 function openArtistSheet(){
   showSheet(`
     <h2 class="disp" style="margin:0 0 4px;">💖 自擔管理</h2>
-    <p class="sub" style="margin:4px 0;">點自擔可編輯資料與應援色。</p>
-    <div style="margin:6px 0 4px;">${S.artists.map(a=>`
+    <p class="sub" style="margin:4px 0;">點自擔可編輯資料、擔位與應援色。擔位只作分類標示，不會影響行程或統計。</p>
+    <div style="margin:6px 0 4px;">${S.artists.map(a=>a.system?`
+      <div class="mate" style="opacity:.78;">
+        <div class="av" style="background:${a.color}">📦</div>
+        <div style="flex:1; min-width:0;"><b>${esc(a.name)}</b>
+          <div class="sub" style="font-size:12px;">系統分類 · ${linkedToArtistCount(a.id)} 筆保留紀錄 · 可在各筆編輯時重新指定自擔</div></div>
+      </div>`:`
       <div class="mate" style="cursor:pointer;" onclick="openArtistForm('${a.id}')">
         <div class="av" style="background:${a.color}">${esc(a.name[0]||'?')}</div>
-        <div style="flex:1;"><b>${a.role==='main'?'⭐ ':''}${esc(a.name)}</b>
-          <div class="sub" style="font-size:12px;">${esc(a.group||'')}${a.since?' · 入坑 '+a.since:''}</div></div>
+        <div style="flex:1; min-width:0;"><b>${roleMeta(a.role).icon} ${esc(a.name)}</b>
+          <div class="sub" style="font-size:12px;">${roleMeta(a.role).label}${a.group?' · '+esc(a.group):''}${a.since?' · 入坑 '+a.since:''}</div></div>
         <span style="opacity:.45;">✏️ ›</span>
-        <button class="btn sm line" onclick="event.stopPropagation();delArtist('${a.id}')">🗑</button>
+        <button class="btn sm line" onclick="event.stopPropagation();delArtist('${a.id}')" aria-label="移除 ${esc(a.name)}">🗑</button>
       </div>`).join('')}</div>
     <div style="margin-top:14px;"><button class="btn wide" onclick="openArtistForm()">➕ 新增自擔</button></div>`);
 }
 function openArtistForm(editId){
-  const ed=editId?artist(editId):null; EDITING=ed?{t:'artist',id:editId}:null;
+  const ed=editId?artist(editId):null; if(ed&&ed.system)return openArtistSheet(); EDITING=ed?{t:'artist',id:editId}:null;
   pickColor=ed?ed.color:SWATCH[0];
   showSheet(`
     <h2 class="disp" style="margin:0 0 4px;">${ed?`✏️ 編輯:${esc(ed.name)}`:'➕ 新增自擔'}</h2>
     <label class="f">名字</label><input id="aName" value="${ed?esc(ed.name):''}" placeholder="例:珉奎">
     <label class="f">團體(選填,填對團名可自動帶入已公佈行程)</label><input id="aGroup" value="${ed?esc(ed.group||''):''}" placeholder="例:SEVENTEEN">
     <div class="row">
-      <div><label class="f">擔位</label><select id="aRole"><option value="main" ${ed&&ed.role==='main'?'selected':''}>⭐ 主擔</option><option value="sub" ${!ed||ed.role!=='main'?'selected':''}>💛 副擔</option></select></div>
+      <div><label class="f">擔位</label><select id="aRole">${Object.entries(ROLE_META).map(([v,m])=>`<option value="${v}" ${((ed&&ed.role)||'sub')===v?'selected':''}>${m.icon} ${m.label}</option>`).join('')}</select></div>
       <div><label class="f">入坑日</label><input id="aSince" type="date" value="${ed?(ed.since||''):''}"></div>
     </div>
     <label class="f">應援色(整個 App 會跟著換色!)</label>
@@ -2833,12 +2917,12 @@ async function saveArtist(){
   const o={name:n,group:document.getElementById('aGroup').value.trim(),role,since:document.getElementById('aSince').value||'',color:pickColor};
   if(EDITING&&EDITING.t==='artist'){
     const a=artist(EDITING.id);
-    if(role==='main'&&S.artists.filter(x=>x.role==='main'&&x.id!==a.id).length>=2)
+    if(role==='main'&&realArtists().filter(x=>x.role==='main'&&x.id!==a.id).length>=2)
       return toast('主擔最多 2 位,請先把其中一位改為副擔','⚠️');
     Object.assign(a,o);
     EDITING=null; save(); applyTheme(); renderHome(); openArtistSheet(); toast('已儲存變更'); return;
   }
-  if(role==='main'&&S.artists.filter(x=>x.role==='main').length>=2)
+  if(role==='main'&&realArtists().filter(x=>x.role==='main').length>=2)
     return toast('主擔最多 2 位,請先把其中一位改為副擔','⚠️');
   const a={id:uid(),...o};
   S.artists.push(a); S.activeArtistId=a.id;
@@ -2858,19 +2942,33 @@ async function saveArtist(){
   else go('home');
 }
 async function delArtist(id){
-  if(S.artists.length<=1)return toast('至少保留一位自擔','⚠️');
   const a=artist(id);
-  const ch=await uiChoice(`移除「${a?esc(a.name):''}」?`,[
-    {label:'🗑 連同他的行程一併刪除',value:'wipe'},
-    {label:'👤 只移除人,保留行程與回憶',value:'keep',primary:true},
+  if(!a||a.system)return;
+  if(realArtists().length<=1)return toast('至少保留一位自擔','⚠️');
+  const n=linkedToArtistCount(id);
+  const ch=await uiChoice(`怎樣處理「${esc(a.name)}」?<br><span style="font-size:12.5px; font-weight:500;">目前有 <b>${n}</b> 筆行程、回憶、收藏或支出與他相關。為避免誤刪,移除後紀錄只會轉到「未分類」。</span>`,[
+    {label:'🕰️ 改列為舊愛・保留自擔與全部紀錄',value:'former',primary:true},
+    {label:'📦 確定移除・紀錄轉到未分類',value:'remove'},
     {label:'取消',value:null}
   ]);
   if(!ch)return;
+  if(ch==='former'){
+    a.role='former';
+    save(); applyTheme(); openArtistSheet(); toast(`「${a.name}」已移到舊愛`,'🕰️');
+    return;
+  }
+  if(n){
+    ensureUncategorizedArtist();
+    ARTIST_LINKED_KEYS.forEach(k=>S[k].forEach(v=>{ if(v.artistId===id)v.artistId=UNCATEGORIZED_ID; }));
+  }
   S.artists=S.artists.filter(x=>x.id!==id);
-  if(ch==='wipe') S.events=S.events.filter(e=>e.artistId!==id);
-  if(S.activeArtistId===id)S.activeArtistId=S.artists[0].id;
-  if(S.artists.length&&!S.artists.some(x=>x.role==='main'))S.artists[0].role='main';
-  save(); applyTheme(); openArtistSheet(); toast('已移除');
+  const remain=realArtists();
+  if(S.activeArtistId===id)S.activeArtistId=remain[0].id;
+  if(remain.length&&!remain.some(x=>x.role==='main'))remain[0].role='main';
+  if(memFilter===id)memFilter=n?UNCATEGORIZED_ID:'all';
+  if(pcFilter===id)pcFilter=n?UNCATEGORIZED_ID:'all';
+  if(shareScope===id)shareScope=S.activeArtistId;
+  save(); applyTheme(); openArtistSheet(); toast(n?`已移除,${n} 筆紀錄轉到未分類`:'已移除','📦');
 }
 
 /* events */
@@ -3211,53 +3309,34 @@ function saveExp(){
 }
 
 /* ================= 新手導覽 ================= */
-function showIntro(n){
-  const st=[
-    {i:'💖',t:'選你的自擔',d:'首頁點「+ 自擔」加入本命,挑一個應援色——整個 App 會即時換成他的顏色。主擔/副擔和入坑日也在這裡設定。'},
-    {i:'📅',t:'把行程搬進來',d:'日曆可以手動新增,也可以用「📋 貼上」把官方公告整段貼進來自動解析。「開賣」行程一進日曆,搶票作戰室的倒數就自動啟動。'},
-    {i:'🎫',t:'從搶票走到回憶',d:'演出旁按「🙋 參加?」記錄中票/沒中,戰績和門票支出自動同步;演出結束後一鍵寫進回憶,再按 📤 生成限動分享圖!'}
-  ][n-1];
-  showSheet(`
-    <div style="text-align:center; padding:6px 0 2px;">
-      <div style="font-size:54px; line-height:1.2;">${st.i}</div>
-      <h2 class="disp" style="margin:6px 0;">${n}/3 · ${st.t}</h2>
-      <p style="font-size:14px; text-align:left; line-height:1.7;">${st.d}</p>
-      <div style="margin:4px 0 2px;">${[1,2,3].map(k=>`<span style="display:inline-block;width:10px;height:10px;border-radius:50%;border:2px solid var(--ink);margin:0 4px;background:${k===n?'var(--acc)':'transparent'}"></span>`).join('')}</div>
-      <div class="row" style="margin-top:14px;">
-        ${n>1?`<button class="btn line" onclick="showIntro(${n-1})">上一步</button>`:`<button class="btn line" onclick="endIntro()">跳過</button>`}
-        ${n<3?`<button class="btn" onclick="showIntro(${n+1})">下一步</button>`:`<button class="btn" onclick="endIntro()">開始使用 🎉</button>`}
-      </div>
-      ${n===3?`<p class="sub" style="margin-top:12px;">目前顯示的是示範資料,可自由刪改;換裝置前記得首頁底部「💾 備份」!</p>`:''}
-    </div>`);
-}
-function endIntro(){ S.ui=S.ui||{}; S.ui.seenIntro=1; save(); closeSheet(); }
-
 /* ================= boot ================= */
 function tour(i){
   const steps=[
-    {icon:'🔒',t:'你的資料只屬於你',d:'所有紀錄、照片、小抄都<b>只存在你這台裝置</b>,不會上傳雲端,開發者也完全看不到。清瀏覽器資料前記得先到「設定」備份!'},
-    {icon:'💖',t:'先選好你的自擔',d:'首頁上方點自擔圓片切換,整個 App 會換成他的應援色。畫面上的資料是示範用,可以隨時刪改或直接覆蓋。'},
-    {icon:'📅',t:'把行程放進日曆',d:'新增自擔時填團名可自動帶入已公佈行程;或用日曆的「📋 貼上」把官方公告一鍵變行程。「開賣」一進日曆,搶票作戰室的倒數就自動啟動。'},
-    {icon:'📖',t:'參戰完寫進回憶',d:'演出標「🎫 中票」會同步戰績和門票支出;演出結束後按「📖 寫回憶」,補上照片心得,再生成票根分享到 IG 限動!'}
+    {icon:'👀',t:'先放心試玩',d:'你現在看到的行程、回憶、小卡和支出都是<b>示範資料</b>,不是你的紀錄。可以先隨便點、隨便改;準備正式開始時,到「設定 → 資料」一鍵清除,自己新增的內容不會被刪。',action:`<button class="btn sm line wide" onclick="clearDemoData()">🧹 清除示範資料・從空白開始</button>`},
+    {icon:'📲',t:'加到主畫面,體驗會完整很多',d:'安裝後會有獨立 App 圖示、全螢幕視窗,首次連線完成後也能離線打開。Android 可直接安裝;iPhone 請用 Safari 的分享選單「加入主畫面」。',action:`<button class="btn sm wide" onclick="pwaInstall()">📲 現在安裝到主畫面</button>`},
+    {icon:'💖',t:'換成你的追星宇宙',d:'首頁點「+ 自擔」加入本命,設定主擔、副擔、浮氣或舊愛,再挑應援色。整個 App 會跟著目前選中的自擔換色。'},
+    {icon:'🎫',t:'行程、搶票、回憶一條龍',d:'把官方公告貼進日曆,「開賣」會自動啟動搶票倒數;中票後同步門票支出,演出結束再一鍵寫成回憶與限動分享圖。'},
+    {icon:'🔒',t:'資料只在這台裝置',d:'照片、行程和小抄不會上傳雲端,開發者也看不到。換手機、換網址或清瀏覽器資料前,記得到「設定 → 資料」先備份。'}
   ];
   const st=steps[i];
   showSheet(`
     <div style="text-align:center;">
       <div style="font-size:54px; line-height:1.2;">${st.icon}</div>
-      <h2 class="disp" style="margin:8px 0 4px;">${st.t}</h2>
-      <p style="font-size:14px; line-height:1.7; margin:6px 4px 16px;">${st.d}</p>
+      <div class="sub" style="font-size:11.5px; font-weight:700; margin-top:4px;">快速預覽 ${i+1}/${steps.length}</div>
+      <h2 class="disp" style="margin:5px 0 4px;">${st.t}</h2>
+      <p style="font-size:14px; line-height:1.75; margin:6px 4px 12px; text-align:left;">${st.d}</p>
+      ${st.action?`<div style="margin:0 0 13px;">${st.action}</div>`:''}
       <div style="margin-bottom:16px;">${steps.map((_,k)=>`<span style="display:inline-block; width:11px; height:11px; border-radius:50%; border:2px solid var(--ink); margin:0 4px; background:${k===i?'var(--acc)':'transparent'};"></span>`).join('')}</div>
       <div class="row">
-        ${i>0?`<button class="btn line" onclick="tour(${i-1})">上一步</button>`:`<button class="btn line" onclick="endTour()">跳過</button>`}
-        ${i<steps.length-1?`<button class="btn" onclick="tour(${i+1})">下一步</button>`:`<button class="btn" onclick="endTour()">開始使用 🎉</button>`}
+        ${i>0?`<button class="btn line" onclick="tour(${i-1})">上一步</button>`:`<button class="btn line" onclick="endTour()">稍後再看</button>`}
+        ${i<steps.length-1?`<button class="btn" onclick="tour(${i+1})">下一步</button>`:`<button class="btn" onclick="endTour()">開始我的日誌 🎉</button>`}
       </div>
     </div>`);
 }
 function endTour(){ S.ui=S.ui||{}; S.ui.seenTour=1; save(); closeSheet(); toast('隨時可從 ⚙️ 設定重看導覽','🔰'); }
 
 load(); applyTheme(); applyLang(); go('home'); initPhotoStore();
-if(!(S.ui&&S.ui.seenTour)){ S.ui=S.ui||{}; S.ui.seenTour=1; save(); setTimeout(()=>tour(0),400); }
-if(!S.ui.seenIntro) setTimeout(()=>showIntro(1),400);
+if(!(S.ui&&S.ui.seenTour)){ S.ui=S.ui||{}; S.ui.seenTour=1; S.ui.seenIntro=1; save(); setTimeout(()=>tour(0),400); }
 </script>
 </body>
 </html>
